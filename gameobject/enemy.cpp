@@ -6,9 +6,9 @@
 
 void enemy::init() 
 {
-	m_mesh = MeshManager::getMesh<CStaticMesh>("car001.x");
+	m_mesh = MeshManager::getMesh<CStaticMesh>("car002.x");
 	m_shader = MeshManager::getShader<CShader>("lightshader");
-	m_meshrenderer = MeshManager::getRenderer<CStaticMeshRenderer>("car001.x");
+	m_meshrenderer = MeshManager::getRenderer<CStaticMeshRenderer>("car002.x");
 }
 
 void enemy::update(uint64_t dt) {

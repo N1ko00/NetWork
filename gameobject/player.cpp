@@ -7,9 +7,9 @@
 
 void player::init() {
 
-	m_mesh = MeshManager::getMesh<CStaticMesh>("car000.x");
+	m_mesh = MeshManager::getMesh<CStaticMesh>("car002.x");
 	m_shader = MeshManager::getShader<CShader>("lightshader");
-	m_meshrenderer = MeshManager::getRenderer<CStaticMeshRenderer>("car000.x");
+	m_meshrenderer = MeshManager::getRenderer<CStaticMeshRenderer>("car002.x");
 
 	m_srt.pos = Vector3(0, 0, 0);
 	m_srt.scale = Vector3(1, 1, 1);

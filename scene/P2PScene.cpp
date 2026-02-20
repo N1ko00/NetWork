@@ -189,7 +189,7 @@ void P2PScene::resourceLoader()
 	MeshManager::RegisterShader<CShader>("unlightshader", std::move(shader2));
 
     {
-        std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car000.x");
+        std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car002.x");
         std::filesystem::path  dirpath = utility::PathFromUtf8OrCp932("assets/model/");
 
         std::unique_ptr<CStaticMesh> mesh = std::make_unique<CStaticMesh>();
@@ -198,11 +198,11 @@ void P2PScene::resourceLoader()
         std::unique_ptr<CStaticMeshRenderer> renderer = std::make_unique<CStaticMeshRenderer>();
         renderer->Init(*mesh);
 
-        MeshManager::RegisterMesh<CStaticMesh>("car000.x", std::move(mesh));
-        MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car000.x", std::move(renderer));
+        MeshManager::RegisterMesh<CStaticMesh>("car002.x", std::move(mesh));
+        MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car002.x", std::move(renderer));
     }
 
-    {
+    /* {
         std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car001.x");
         std::filesystem::path  dirpath = utility::PathFromUtf8OrCp932("assets/model/");
 
@@ -213,7 +213,7 @@ void P2PScene::resourceLoader()
 
         MeshManager::RegisterMesh<CStaticMesh>("car001.x", std::move(mesh));
         MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car001.x", std::move(renderer));
-    }
+    }*/
 
 }
 
