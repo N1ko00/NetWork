@@ -1,0 +1,12 @@
+# config.toml
+
+myport = 49152
+machineID = 102
+
+[[peers]]
+ip = "127.0.0.1"
+port = 49153
+
+[[peers]]
+ip = "127.0.0.1"
+port = 49154

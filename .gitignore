@@ -1,0 +1,53 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+!**/assets/model/obj/*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio関連ファイル
+.vscode/
+#*vcxproj*
+#*.sln
+*.user
+*.ncb
+*.suo
+*.cache
+*.pdb
+*.log
+*.ipch
+
+#ビルド生成ファイル
+Debug/
+Release/
+x64/
+Win32/
+
+*.GM31MTRL

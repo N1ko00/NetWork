@@ -1,0 +1,553 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\system">
+      <UniqueIdentifier>{24ce9d77-38ae-4689-b3f8-12a1b9e68c41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\system\imgui">
+      <UniqueIdentifier>{ecafeb23-44b1-4497-866f-cfc7c91332f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\scene">
+      <UniqueIdentifier>{66cea2b4-2c2d-4d1a-90ff-cd00ce58ef52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\gameobject">
+      <UniqueIdentifier>{fb2ebafb-207a-4365-a929-a1e72bd49253}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\utility">
+      <UniqueIdentifier>{c33d0148-7543-4976-a207-487ce3c699be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\shader">
+      <UniqueIdentifier>{d1f68386-05e0-4624-a4f9-8bc029eae54d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\utility\assimp">
+      <UniqueIdentifier>{96f0e167-267c-4874-be23-996e76191cc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\network">
+      <UniqueIdentifier>{947d26a8-1cd8-44d4-a455-2b1716f07c1a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_demo.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_draw.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_impl_dx11.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_impl_win32.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_tables.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="system\imgui\imgui_widgets.cpp">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="system\scenemanager.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\DebugUI.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\renderer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\ConeDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\SphereDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\camera.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CShader.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CSprite.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CStaticMesh.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CStaticMeshRenderer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CTexture.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\C3DShape.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\stb.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\dx11helper.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\AssimpPerse.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\BoxDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CylinderDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\LineDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CLineMesh.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CapsuleDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CConeMesh.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CCylinderMesh.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\utility.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CAnimationData.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CAnimationMesh.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CAnimationObject.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\BoneCombMatrix.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CAnimationMeshBlender.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\collision.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\CPlane.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\terrain.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="system\stbperlin.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\TriangleDrawer.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\meshmanager.cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\ScreenToWorld.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="system\DirectWrite .cpp">
+      <Filter>ソース ファイル\system</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\tower.cpp">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\aim.cpp">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\field.cpp">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClCompile>
+    <ClCompile Include="scene\P2PScene.cpp">
+      <Filter>ソース ファイル\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\particle.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\blobshadow.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\spline.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\generatemipmap.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\fileopendialog.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\EncodingConverter.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\FileUtil.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\pathutil.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\assimp\assimpscenemeshextracter.cpp">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\assimp\SceneMeshBinaryIO.cpp">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\assimp\ToMyMATERIAL.cpp">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\assimp\SceneMaterialBinaryIO.cpp">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\assimp\assimptexturearray.cpp">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\FileReadUtf8.cpp">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\player.cpp">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClCompile>
+    <ClCompile Include="network\NetworkSystem.cpp">
+      <Filter>ソース ファイル\network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\udpcom.cpp">
+      <Filter>ソース ファイル\network</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject\enemy.cpp">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="system\noncopyable.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imconfig.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imgui.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imgui_impl_dx11.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imgui_impl_win32.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imgui_internal.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imstb_rectpack.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imstb_textedit.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="system\imgui\imstb_truetype.h">
+      <Filter>ソース ファイル\system\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="system\scenemanager.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\DebugUI.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\renderer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\commontypes.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CDirectInput.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="fpscontrol.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="system\IScene.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\SceneClassFactory.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\ConeDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\SphereDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\transform.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\camera.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CPolar3D.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CShader.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CSprite.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CStaticMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CStaticMeshRenderer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CTexture.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CTreeNode.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\C3DShape.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\stb_image.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CMaterial.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\dx11helper.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\AssimpPerse.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CVertexBuffer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CIndexBuffer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CMeshRenderer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\BoxDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CBoxMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CylinderDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CSphereMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\LineDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CLineMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CapsuleDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CConeMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CCylinderMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\utility.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CAnimationData.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CAnimationMesh.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CAnimationObject.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\BoneCombMatrix.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CAnimationMeshBlender.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\gameobject.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="system\collision.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\CPlane.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\RandomEngine.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\stb_perlin.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\TriangleDrawer.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\meshmanager.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\ScreenToWorld.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="system\DirectWrite.h">
+      <Filter>ソース ファイル\system</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\tower.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\aim.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\field.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="scene\P2PScene.h">
+      <Filter>ソース ファイル\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\particle.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\blobshadow.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\spline.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\generatemipmap.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\fileopendialog.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\EncodingConverter.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\FileUtil.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\pathutil.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\assimp\assimpscenemeshextracter.h">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\assimp\SceneMeshBinaryIO.h">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\assimp\SceneMaterialBinaryIO.h">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\assimp\ToMyMATERIAL.h">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\assimp\assimptexturearray.h">
+      <Filter>ソース ファイル\utility\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\FileReadUtf8.h">
+      <Filter>ソース ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\player.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="network\CMessageDispacher.h">
+      <Filter>ソース ファイル\network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\message.h">
+      <Filter>ソース ファイル\network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\NetworkSystem.h">
+      <Filter>ソース ファイル\network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\toml.hpp">
+      <Filter>ソース ファイル\network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\udpcom.h">
+      <Filter>ソース ファイル\network</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\enemy.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\objectmanager.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject\SnowFlakeID.h">
+      <Filter>ソース ファイル\gameobject</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\common.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\GeometryShader.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\unlitTexturePS.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\unlitTextureVS.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\vertexLightingOneSkinVS.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\vertexLightingPS.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\vertexLightingVS.hlsl">
+      <Filter>ソース ファイル\shader</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pia1\config.toml">
+      <Filter>ソース ファイル\network</Filter>
+    </None>
+    <None Include="pia2\config.toml">
+      <Filter>ソース ファイル\network</Filter>
+    </None>
+  </ItemGroup>
+</Project>

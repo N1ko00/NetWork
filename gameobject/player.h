@@ -1,0 +1,39 @@
+#pragma once
+
+#include	<memory>
+#include	"gameobject.h"
+#include	"../system/CStaticMesh.h"
+#include	"../system/CStaticMeshRenderer.h"
+#include	"../system/CShader.h"
+
+class player : public gameobject {
+
+public:
+	player(IScene* currentscene)
+		: m_meshrenderer(nullptr),
+		m_mesh(nullptr),
+		m_shader(nullptr),
+		gameobject(currentscene) {
+	}
+
+	void update(uint64_t delta) override;
+	void draw(uint64_t delta) override;
+	void init() override;
+	void dispose() override;
+
+	// “®‚«‚Ìƒpƒ‰ƒ[ƒ^
+	const float VALUE_MOVE_MODEL = 2.0f;			// ˆÚ“®‘¬“x
+	const float VALUE_ROTATE_MODEL = PI * 0.02f;	// ‰ñ“]‘¬“x
+	const float RATE_ROTATE_MODEL = 0.40f;			// ‰ñ“]Šµ«ŒW”
+	const float RATE_MOVE_MODEL = 0.20f;			// ˆÚ“®Šµ«ŒW”
+
+private:
+	CStaticMesh*			m_mesh;
+	CStaticMeshRenderer*	m_meshrenderer;
+	CShader*				m_shader;
+
+	// ˆÚ“®—Ê
+	Vector3	m_move = { 0.0f,0.0f,0.0f };
+	// –Ú•W‰ñ“]Šp“x
+	Vector3	m_destrot = { 0.0f,0.0f,0.0f };
+};
