@@ -188,9 +188,10 @@ void P2PScene::resourceLoader()
 	shader2->Create("shader/unlitTextureVS.hlsl", "shader/unlitTexturePS.hlsl");
 	MeshManager::RegisterShader<CShader>("unlightshader", std::move(shader2));
 
+    auto loadStaticMesh = [](const char* assetPath, const char* registerKey, const char* dirPath)
     {
-        std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car002.x");
-        std::filesystem::path  dirpath = utility::PathFromUtf8OrCp932("assets/model/");
+        std::filesystem::path  fpath = utility::PathFromUtf8OrCp932(assetPath);
+        std::filesystem::path  dirpath = utility::PathFromUtf8OrCp932(dirPath);
 
         std::unique_ptr<CStaticMesh> mesh = std::make_unique<CStaticMesh>();
         mesh->Load(fpath, dirpath);
@@ -198,9 +199,14 @@ void P2PScene::resourceLoader()
         std::unique_ptr<CStaticMeshRenderer> renderer = std::make_unique<CStaticMeshRenderer>();
         renderer->Init(*mesh);
 
-        MeshManager::RegisterMesh<CStaticMesh>("car002.x", std::move(mesh));
-        MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car002.x", std::move(renderer));
-    }
+        MeshManager::RegisterMesh<CStaticMesh>(registerKey, std::move(mesh));
+        MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>(registerKey, std::move(renderer));
+    };
+
+    loadStaticMesh("assets/model/tank/tank10_base.x", "tank10_base.x", "assets/model/tank/");
+    loadStaticMesh("assets/model/tank/tank10_top.x", "tank10_top.x", "assets/model/tank/");
+    loadStaticMesh("assets/model/tank/tank10_cat.x", "tank10_cat.x", "assets/model/tank/");
+    loadStaticMesh("assets/model/tank/tank10_pipe.x", "tank10_pipe.x", "assets/model/tank/");
 
     /* {
         std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car001.x");
