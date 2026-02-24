@@ -144,11 +144,11 @@ void P2PScene::init()
 	// リソースを読み込む
 	resourceLoader();
 
-    // オブジェクトマネージャを生成
-    m_objectmanager = std::make_unique<ObjectManager>(this);
-
     // p2pnetowrk start
     p2pnetworkstart();
+
+    // オブジェクトマネージャを生成
+    m_objectmanager = std::make_unique<ObjectManager>(this);
 
     // フィールド初期化
     m_field=m_objectmanager->CreateLocal<field>();
@@ -338,6 +338,8 @@ void P2PScene::p2pnetworkstart()
      // 表示
      std::cout << "myport:" << *myport << "\n";
      std::cout << "machineID:" << machineid_i << "\n";
+
+     m_machineID = static_cast<uint64_t>(machineid_i);
 
      for (std::size_t i = 0; i < peers.size(); ++i) {
          std::cout << "peers[" << i << "].ip:" << peers[i].ip
