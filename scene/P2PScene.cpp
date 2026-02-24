@@ -208,7 +208,7 @@ void P2PScene::resourceLoader()
     loadStaticMesh("assets/model/tank/tank10_cat.x", "tank10_cat.x", "assets/model/tank/");
     loadStaticMesh("assets/model/tank/tank10_pipe.x", "tank10_pipe.x", "assets/model/tank/");
 
-    /* {
+     {
         std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car001.x");
         std::filesystem::path  dirpath = utility::PathFromUtf8OrCp932("assets/model/");
 
@@ -219,7 +219,7 @@ void P2PScene::resourceLoader()
 
         MeshManager::RegisterMesh<CStaticMesh>("car001.x", std::move(mesh));
         MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car001.x", std::move(renderer));
-    }*/
+    }
 
 }
 
