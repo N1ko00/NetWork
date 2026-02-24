@@ -17,9 +17,9 @@ void player::init() {
 	MeshManager::getRenderer<CStaticMeshRenderer>("tank10_cat.x");
 	MeshManager::getRenderer<CStaticMeshRenderer>("tank10_pipe.x");
 
-	m_srt.pos = Vector3(0, 0, 0);
+	m_srt.pos = Vector3(0, 5, 0);
 	m_srt.scale = Vector3(1, 1, 1);
-	m_srt.rot = Vector3(0, 0, 0);
+	m_srt.rot = Vector3(0, 0, PI);
 }
 
 void player::update(uint64_t dt) {
