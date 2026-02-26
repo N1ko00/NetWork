@@ -95,6 +95,7 @@ public:
 	// eM
 	void SendBulletRegist();
 	void HandleBulletEnemyCollisions();
+	bool HandleEnemyBulletPlayerCollision();
 
 	// ƒ}ƒVƒ“”Ô†
 	uint64_t getmachineid() {

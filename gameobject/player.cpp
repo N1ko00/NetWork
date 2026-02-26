@@ -35,6 +35,7 @@ void player::SpawnLocalBullet()
 	bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + shotDir * 20.0f;
 	bullet.vel = shotDir * 15.0f;
 	bullet.life = 180.0f;
+	bullet.isLocal = true;
 
 	m_bullets.push_back(bullet);
 	m_justFiredBullets.push_back(bullet);
@@ -50,6 +51,7 @@ void player::SpawnNetworkBullet(const Vector3& pos, const Vector3& dir)
 	bullet.pos = pos;
 	bullet.vel = normalized * 15.0f;
 	bullet.life = 180.0f;
+	bullet.isLocal = false;
 	m_bullets.push_back(bullet);
 }
 
@@ -57,6 +59,14 @@ void player::RemoveBulletAt(std::size_t index)
 {
 	if (index >= m_bullets.size()) return;
 	m_bullets.erase(m_bullets.begin() + static_cast<std::ptrdiff_t>(index));
+}
+
+bool player::CheckHitByEnemyBullet(const Vector3& bulletPos) const
+{
+	const Vector3 center = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f);
+	const Vector3 diff = bulletPos - center;
+	const float collisionRadius = 18.0f;
+	return diff.LengthSquared() <= (collisionRadius * collisionRadius);
 }
 
 void player::update(uint64_t dt) {

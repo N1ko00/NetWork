@@ -140,6 +140,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="network\NetworkSystem.cpp" />
     <ClCompile Include="network\udpcom.cpp" />
+    <ClCompile Include="ResultScene.cpp" />
     <ClCompile Include="scene\P2PScene.cpp" />
     <ClCompile Include="system\AssimpPerse.cpp" />
     <ClCompile Include="system\BoneCombMatrix.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="network\NetworkSystem.h" />
     <ClInclude Include="network\toml.hpp" />
     <ClInclude Include="network\udpcom.h" />
+    <ClInclude Include="ResultScene.h" />
     <ClInclude Include="scene\P2PScene.h" />
     <ClInclude Include="system\AssimpPerse.h" />
     <ClInclude Include="system\BoneCombMatrix.h" />

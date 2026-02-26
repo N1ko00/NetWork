@@ -9,6 +9,7 @@
 #include "../system/CStaticMeshRenderer.h"
 #include "../system/LineDrawer.h"
 #include "../system/SphereDrawer.h"
+#include "../system/scenemanager.h"
 
 namespace {
     //------------------------------------------------------------------------------
@@ -117,6 +118,10 @@ void P2PScene::update(uint64_t deltatime)
     // 受信しているメッセージをすべて処理
     p2pnetworkupdate();
     HandleBulletEnemyCollisions();
+    if (HandleEnemyBulletPlayerCollision()) {
+        SceneManager::SetCurrentScene("ResultScene");
+        return;
+    }
 }
 
 /**
@@ -424,6 +429,9 @@ void P2PScene::HandleBulletEnemyCollisions()
 
     for (std::size_t bulletIndex = 0; bulletIndex < bullets.size(); ++bulletIndex)
     {
+        if (!bullets[bulletIndex].isLocal) {
+            continue;
+        }
         const Vector3 bulletPos = bullets[bulletIndex].pos;
         bool hit = false;
 
@@ -447,6 +455,30 @@ void P2PScene::HandleBulletEnemyCollisions()
     {
         m_player->RemoveBulletAt(*it);
     }
+}
+
+bool P2PScene::HandleEnemyBulletPlayerCollision()
+{
+    auto& bullets = m_player->GetBullets();
+    std::vector<std::size_t> removeIndices;
+
+    for (std::size_t bulletIndex = 0; bulletIndex < bullets.size(); ++bulletIndex)
+    {
+        if (bullets[bulletIndex].isLocal) {
+            continue;
+        }
+
+        if (m_player->CheckHitByEnemyBullet(bullets[bulletIndex].pos)) {
+            removeIndices.push_back(bulletIndex);
+        }
+    }
+
+    for (auto it = removeIndices.rbegin(); it != removeIndices.rend(); ++it)
+    {
+        m_player->RemoveBulletAt(*it);
+    }
+
+    return !removeIndices.empty();
 }
 
 /**
