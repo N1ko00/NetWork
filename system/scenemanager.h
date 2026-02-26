@@ -13,6 +13,8 @@ class SceneManager : NonCopyable{
 
 	static inline std::unordered_map<std::string, std::unique_ptr<IScene>> m_scenes{};
 	static inline std::string m_currentSceneName{};
+	static inline std::string m_pendingSceneName{};
+	static inline bool m_isUpdating{ false };
 
 public:
 	static void SetCurrentScene(std::string);

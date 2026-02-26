@@ -1,6 +1,20 @@
 #include	"scenemanager.h"
 #include	"SceneClassFactory.h"
 #include	<cassert>
+#include	<utility>
+
+namespace {
+	void ApplySceneChange(const std::string& sceneName,
+		std::unordered_map<std::string, std::unique_ptr<IScene>>& scenes,
+		std::string& currentSceneName)
+	{
+		auto obj = SceneClassFactory::getInstance().create(sceneName);
+		assert(obj);
+		obj->init();
+		currentSceneName = sceneName;
+		scenes[currentSceneName] = std::move(obj);
+	}
+}
 
 // 登録されているシーンを全て破棄する
 void SceneManager::Dispose() 
@@ -13,15 +27,18 @@ void SceneManager::Dispose()
 
 	m_scenes.clear();
 	m_currentSceneName.clear();
+	m_pendingSceneName.clear();
+	m_isUpdating = false;
 }
 
 void SceneManager::SetCurrentScene(std::string currentscenename) 
 {
-	m_currentSceneName = currentscenename;
-	auto obj = SceneClassFactory::getInstance().create(currentscenename);
-	assert(obj);
-	obj->init();
-	m_scenes[m_currentSceneName] = std::move(obj);
+	if (m_isUpdating) {
+		m_pendingSceneName = std::move(currentscenename);
+		return;
+	}
+
+	ApplySceneChange(currentscenename, m_scenes, m_currentSceneName);
 }
 
 void SceneManager::Init()
@@ -37,6 +54,13 @@ void SceneManager::Draw(uint64_t deltatime)
 
 void SceneManager::Update(uint64_t deltatime)
 {
+	m_isUpdating = true;
 	// 現在のシーンを更新
 	m_scenes[m_currentSceneName]->update(deltatime);
+
+	if (!m_pendingSceneName.empty()) {
+		std::string next = std::move(m_pendingSceneName);
+		m_pendingSceneName.clear();
+		ApplySceneChange(next, m_scenes, m_currentSceneName);
+	}
 }
