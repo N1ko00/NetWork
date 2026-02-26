@@ -533,5 +533,9 @@ void P2PScene::PositionInfoHandler(
         obj = m_objectmanager->CreateRemoteWithId<enemy>(msg->Msg.Header.ID);
     }
 
+    if (obj == nullptr) {
+        return;
+    }
+
     obj->setSRT(srt);
 }

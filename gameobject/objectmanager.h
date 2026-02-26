@@ -131,11 +131,8 @@ private:
     // -------------------------
     template<class T, class... Args>
     T* CreateWithIdInternal(ObjectId id, ObjectKind kind, Args&&... args) {
-        // ★ID衝突は必ず弾く（ネットワークの重複受信やバグ検出にもなる）
-        if (Exists(id)) {
-            // ここは assert / ログ / nullptr返す など運用に合わせて
-            assert(false && "ObjectId already exists");
-            return nullptr;
+        if (auto it = m_objects.find(id); it != m_objects.end()) {
+            return dynamic_cast<T*>(it->second.get());
         }
 
         auto obj = std::make_unique<T>(m_scene, std::forward<Args>(args)...);

@@ -7,7 +7,7 @@ void ResultScene::update(uint64_t delta)
 {
     (void)delta;
 
-    if (CDirectInput::GetInstance().GetKeyTrigger(DIK_RETURN)) {
+    if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN)) {
         SceneManager::SetCurrentScene("P2PScene");
     }
 }
