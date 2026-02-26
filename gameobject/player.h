@@ -22,6 +22,17 @@ public:
 	void init() override;
 	void dispose() override;
 
+	struct Bullet {
+		Vector3 pos;
+		Vector3 vel;
+		float life = 0.0f;
+	};
+
+	void SpawnLocalBullet();
+	void SpawnNetworkBullet(const Vector3& pos, const Vector3& dir);
+	const std::vector<Bullet>& GetJustFiredBullets() const { return m_justFiredBullets; }
+	void ClearJustFiredBullets() { m_justFiredBullets.clear(); }
+
 	// 動きのパラメータ
 	const float VALUE_MOVE_MODEL = 2.0f;			// 移動速度
 	const float VALUE_ROTATE_MODEL = PI * 0.02f;	// 回転速度
@@ -38,11 +49,7 @@ private:
 	// 目標回転角度
 	Vector3	m_destrot = { 0.0f,0.0f,0.0f };
 
-	struct Bullet {
-		Vector3 pos;
-		Vector3 vel;
-		float life = 0.0f;
-	};
 
 	std::vector<Bullet> m_bullets;
+	std::vector<Bullet> m_justFiredBullets;
 };

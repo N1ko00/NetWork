@@ -25,6 +25,33 @@ void player::init() {
 	m_srt.rot = Vector3(0, 0, PI);
 }
 
+void player::SpawnLocalBullet()
+{
+	Vector3 shotDir(-std::sin(m_srt.rot.y), 0.0f, -std::cos(m_srt.rot.y));
+	shotDir.Normalize();
+
+	Bullet bullet{};
+	bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + shotDir * 20.0f;
+	bullet.vel = shotDir * 15.0f;
+	bullet.life = 180.0f;
+
+	m_bullets.push_back(bullet);
+	m_justFiredBullets.push_back(bullet);
+}
+
+void player::SpawnNetworkBullet(const Vector3& pos, const Vector3& dir)
+{
+	Vector3 normalized = dir;
+	if (normalized.LengthSquared() <= 1e-6f) return;
+	normalized.Normalize();
+
+	Bullet bullet{};
+	bullet.pos = pos;
+	bullet.vel = normalized * 15.0f;
+	bullet.life = 180.0f;
+	m_bullets.push_back(bullet);
+}
+
 void player::update(uint64_t dt) {
 	// ƒJƒƒ‰Žæ“¾
    IScene* ownerscene = GetOwnerScene();
@@ -108,14 +135,7 @@ void player::update(uint64_t dt) {
    // left click to shoot balls
    if (CDirectInput::GetInstance().GetMouseLButtonTrigger())
    {
-	   Vector3 shotDir(-std::sin(m_srt.rot.y), 0.0f, -std::cos(m_srt.rot.y));
-	   shotDir.Normalize();
-
-	   Bullet bullet{};
-	   bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + shotDir * 20.0f;
-	   bullet.vel = shotDir * 15.0f;
-	   bullet.life = 180.0f;
-	   m_bullets.push_back(bullet);
+	   SpawnLocalBullet();
    }
 
    for (auto& bullet : m_bullets)

@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <algorithm>
 #include "P2PScene.h"
 #include "../system/DebugUI.h"
@@ -12,7 +12,7 @@
 
 namespace {
     //------------------------------------------------------------------------------
-    // port”ÍˆÍƒ`ƒFƒbƒN•t‚«•ÏŠ·
+    // portç¯„å›²ãƒã‚§ãƒƒã‚¯ä»˜ãå¤‰æ›
     //------------------------------------------------------------------------------
     static std::optional<uint16_t> ToPortU16(int p)
     {
@@ -22,14 +22,14 @@ namespace {
 }
 
 /**
- * @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+ * @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
  */
 P2PScene::P2PScene()
 {
 }
 
 /**
- * @brief ƒJƒƒ‰‚Ìİ’è
+ * @brief ã‚«ãƒ¡ãƒ©ã®è¨­å®š
  *
  */
 void P2PScene::debugUICamera() {
@@ -85,7 +85,7 @@ void P2PScene::debugUICamera() {
 }
 
 /**
- * @brief “G‚Ìî•ñ
+ * @brief æ•µã®æƒ…å ±
  *
  */
 void P2PScene::debugEnemyinfo() {
@@ -106,22 +106,22 @@ void P2PScene::debugEnemyinfo() {
 }
 
 /**
- * @brief ƒV[ƒ“‚ÌXVˆ—
+ * @brief ã‚·ãƒ¼ãƒ³ã®æ›´æ–°å‡¦ç†
  *
- * @param deltatime ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ßŠÔiƒ~ƒŠ•bj
+ * @param deltatime å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ã®çµŒéæ™‚é–“ï¼ˆãƒŸãƒªç§’ï¼‰
  */
 void P2PScene::update(uint64_t deltatime)
 {
     m_objectmanager->UpdateAll(deltatime);
 
-    // óM‚µ‚Ä‚¢‚éƒƒbƒZ[ƒW‚ğ‚·‚×‚Äˆ—
+    // å—ä¿¡ã—ã¦ã„ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã™ã¹ã¦å‡¦ç†
     p2pnetworkupdate();
 }
 
 /**
- * @brief •`‰æˆ—
+ * @brief æç”»å‡¦ç†
  *
- * @param deltatime ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ßŠÔiƒ~ƒŠ•bj
+ * @param deltatime å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ã®çµŒéæ™‚é–“ï¼ˆãƒŸãƒªç§’ï¼‰
  */
 void P2PScene::draw(uint64_t deltatime)
 {
@@ -131,57 +131,57 @@ void P2PScene::draw(uint64_t deltatime)
 }
 
 /**
- * @brief ƒV[ƒ“‚Ì‰Šú‰»ˆ—
+ * @brief ã‚·ãƒ¼ãƒ³ã®åˆæœŸåŒ–å‡¦ç†
  */
 void P2PScene::init()
 {
-	// ƒJƒƒ‰(3D)‚Ì‰Šú‰»
+	// ã‚«ãƒ¡ãƒ©(3D)ã®åˆæœŸåŒ–
 	m_camera = std::make_unique <Camera>(Vector3(0,0,-100),Vector3(0,0,0),Vector3(0,1,0));
 
-	// DirectWrite¶¬
+	// DirectWriteç”Ÿæˆ
 	m_directwrite = std::make_unique<DirectWrite>(&m_fontdata);
 	m_directwrite->Init(Renderer::GetSwapChain());
 
-	// ƒŠƒ\[ƒX‚ğ“Ç‚İ‚Ş
+	// ãƒªã‚½ãƒ¼ã‚¹ã‚’èª­ã¿è¾¼ã‚€
 	resourceLoader();
 
     // p2pnetowrk start
     p2pnetworkstart();
 
-    // ƒIƒuƒWƒFƒNƒgƒ}ƒl[ƒWƒƒ‚ğ¶¬
+    // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒãƒãƒ¼ã‚¸ãƒ£ã‚’ç”Ÿæˆ
     m_objectmanager = std::make_unique<ObjectManager>(this);
 
-    // ƒtƒB[ƒ‹ƒh‰Šú‰»
+    // ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰åˆæœŸåŒ–
     m_field=m_objectmanager->CreateLocal<field>();
 
-	// ƒvƒŒƒCƒ„‰Šú‰»
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤åˆæœŸåŒ–
     m_player = m_objectmanager->CreateLocal<player>();
 
 
-    // ƒJƒƒ‰‚Ìİ’è
+    // ã‚«ãƒ¡ãƒ©ã®è¨­å®š
 	DebugUI::RedistDebugFunction([this]() {
 		debugUICamera();
 		});
 
-    // ü•`‰Šú‰»
+    // ç·šæåˆæœŸåŒ–
     LineDrawerInit();
     SphereDrawerInit();
 
 }
 
 /**
- * @brief ƒV[ƒ“‚ÌI—¹ˆ—
+ * @brief ã‚·ãƒ¼ãƒ³ã®çµ‚äº†å‡¦ç†
  */
 void P2PScene::dispose()
 {
 }
 
 /**
- * @brief ƒŠƒ\[ƒX‚ğ“Ç‚İ‚Ş
+ * @brief ãƒªã‚½ãƒ¼ã‚¹ã‚’èª­ã¿è¾¼ã‚€
  */
 void P2PScene::resourceLoader()
 {
-	// ŒõŒ¹ŒvZ‚È‚µƒVƒF[ƒ_[
+	// å…‰æºè¨ˆç®—ãªã—ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 	std::unique_ptr<CShader> shader1 = std::make_unique<CShader>();
 	shader1->Create("shader/vertexLightingVS.hlsl", "shader/vertexLightingPS.hlsl");
 	MeshManager::RegisterShader<CShader>("lightshader", std::move(shader1));
@@ -226,14 +226,14 @@ void P2PScene::resourceLoader()
 }
 
 /**
- * @brief p2pƒlƒbƒgƒ[‰Šúˆ—
+ * @brief p2pãƒãƒƒãƒˆãƒ¯ãƒ¼åˆæœŸå‡¦ç†
  */
 void P2PScene::p2pnetworkstart()
 {
-    // NetworkSystem ‚Ì¶¬
+    // NetworkSystem ã®ç”Ÿæˆ
     m_net = std::make_unique<NetworkSystem>();
 
-    // óMƒƒbƒZ[ƒWˆ—‚ğ“o˜^
+    // å—ä¿¡ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†ã‚’ç™»éŒ²
     m_net->RegisterHandler(
         MessageType::POSITIONINFO,
         [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
@@ -241,7 +241,14 @@ void P2PScene::p2pnetworkstart()
             PositionInfoHandler(std::move(msg), ip, port);
         });
 
-    // İ’èƒtƒ@ƒCƒ‹‘I‘ğ
+    m_net->RegisterHandler(
+        MessageType::BULLETREGIST,
+        [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+        {
+            BulletRegistHandler(std::move(msg), ip, port);
+        });
+
+    // è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«é¸æŠ
     std::cout << "Select pia1 or pia2 or pia3\n";
     std::cout << " 0) pia1\n";
     std::cout << " 1) pia2\n";
@@ -259,7 +266,7 @@ void P2PScene::p2pnetworkstart()
         "pia3/config.toml"
     };
 
-    // TOML “Ç‚İ‚İi—áŠO‘Îôj
+    // TOML èª­ã¿è¾¼ã¿ï¼ˆä¾‹å¤–å¯¾ç­–ï¼‰
     toml::value config;
     try {
          config = toml::parse(filename[selectno]);
@@ -272,7 +279,7 @@ void P2PScene::p2pnetworkstart()
     int myport_i = 0;
     int machineid_i = 0;
 
-     // peers ‚Í•¡”‚É‚È‚é
+     // peers ã¯è¤‡æ•°ã«ãªã‚‹
      struct PeerConfig {
          std::string ip;
          uint16_t port;
@@ -283,7 +290,7 @@ void P2PScene::p2pnetworkstart()
          myport_i = toml::find<int>(config, "myport");
          machineid_i = toml::find<int>(config, "machineID");
 
-         // [[peers]] ... ‚Ì”z—ñ‚ğæ“¾i—v‘f‚Í tablej
+         // [[peers]] ... ã®é…åˆ—ã‚’å–å¾—ï¼ˆè¦ç´ ã¯ tableï¼‰
          const auto peerValues = toml::find<std::vector<toml::value>>(config, "peers");
 
          if (peerValues.empty()) {
@@ -299,7 +306,7 @@ void P2PScene::p2pnetworkstart()
          for (std::size_t i = 0; i < peerValues.size(); ++i) {
              const auto& peer = peerValues[i];
 
-             // peer ‚Í table ‚È‚Ì‚ÅA‚»‚±‚©‚ç ip/port ‚ğ“Ç‚Ş
+             // peer ã¯ table ãªã®ã§ã€ãã“ã‹ã‚‰ ip/port ã‚’èª­ã‚€
              const std::string ip = toml::find<std::string>(peer, "ip");
              const int port_i = toml::find<int>(peer, "port");
 
@@ -324,20 +331,20 @@ void P2PScene::p2pnetworkstart()
             return;
      }
 
-     // ’ÊM‘Šè‚Ì“o˜^
+     // é€šä¿¡ç›¸æ‰‹ã®ç™»éŒ²
      std::string err;
      for (const auto& p : peers) {
          m_net->AddPeer(p.ip.c_str(), p.port,&err);
      }
 
-     // myport ”ÍˆÍƒ`ƒFƒbƒN
+     // myport ç¯„å›²ãƒã‚§ãƒƒã‚¯
      const auto myport = ToPortU16(myport_i);
      if (!myport) {
         std::cerr << "port out of range. myport=" << myport_i << "\n";
         return;
      }
 
-     // •\¦
+     // è¡¨ç¤º
      std::cout << "myport:" << *myport << "\n";
      std::cout << "machineID:" << machineid_i << "\n";
 
@@ -348,13 +355,13 @@ void P2PScene::p2pnetworkstart()
              << " port:" << peers[i].port << "\n";
      }
 
-    // ƒlƒbƒgƒ[ƒNŠJni¸”sƒ`ƒFƒbƒNj
+    // ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯é–‹å§‹ï¼ˆå¤±æ•—ãƒã‚§ãƒƒã‚¯ï¼‰
     const bool ok = m_net->Start(
         *myport,
         peers[0].ip.c_str(),
         peers[0].port,
         [](const std::string& e) {
-            // ‚±‚±‚ÅUI/ƒƒOiÅ’áŒÀ stderr ‚Éo‚·j
+            // ã“ã“ã§UI/ãƒ­ã‚°ï¼ˆæœ€ä½é™ stderr ã«å‡ºã™ï¼‰
             if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
         }
     );
@@ -365,11 +372,11 @@ void P2PScene::p2pnetworkstart()
     }
 }
 /**
- * @brief p2pƒlƒbƒgƒ[XVˆ—
+ * @brief p2pãƒãƒƒãƒˆãƒ¯ãƒ¼æ›´æ–°å‡¦ç†
  */
 void P2PScene::p2pnetworkupdate()
 {
-    m_net->PumpIncoming();      // óMƒf[ƒ^ˆ—
+    m_net->PumpIncoming();      // å—ä¿¡ãƒ‡ãƒ¼ã‚¿å‡¦ç†
 
     SRT srt;
     srt = m_player->getSRT();
@@ -383,16 +390,52 @@ void P2PScene::p2pnetworkupdate()
     msg.Msg.posinfobody.scale = srt.scale;
 
     m_net->SendAll(msg);
+
+    SendBulletRegist();
+    m_player->ClearJustFiredBullets();
 }
+
+void P2PScene::SendBulletRegist()
+{
+    const auto& fired = m_player->GetJustFiredBullets();
+    for (const auto& b : fired)
+    {
+        MsgData bmsg{};
+        bmsg.Msg.Header.type = MessageType::BULLETREGIST;
+        bmsg.Msg.Header.ID = m_player->GetObjectId();
+        bmsg.Msg.Header.seqenceno = 0;
+        bmsg.Msg.bulletregistbody.pos = b.pos;
+        bmsg.Msg.bulletregistbody.rotation = b.vel;
+        bmsg.Msg.bulletregistbody.scale = Vector3(1.0f, 1.0f, 1.0f);
+        m_net->SendAll(bmsg);
+    }
+}
+
 /**
- * @brief p2pƒlƒbƒgƒ[ƒNŒãn––
+ * @brief eÊ’mM
+ */
+void P2PScene::BulletRegistHandler(
+    std::unique_ptr<MsgData> msg,
+    uint32_t ipadr,
+    uint16_t port)
+{
+    (void)ipadr;
+    (void)port;
+
+    const Vector3 pos = msg->Msg.bulletregistbody.pos;
+    const Vector3 dir = msg->Msg.bulletregistbody.rotation;
+    m_player->SpawnNetworkBullet(pos, dir);
+}
+
+/**
+ * @brief p2pãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯å¾Œå§‹æœ«
   */
 void P2PScene::p2pnetworkdispose()
 {
 
 }
 
-// “G‚ÌˆÊ’uXVƒnƒ“ƒhƒ‰
+// æ•µã®ä½ç½®æ›´æ–°ãƒãƒ³ãƒ‰ãƒ©
 void P2PScene::PositionInfoHandler(
     std::unique_ptr<MsgData> msg, 
     uint32_t ipadr, 
@@ -400,7 +443,7 @@ void P2PScene::PositionInfoHandler(
 {
 
     SRT srt{};
-    // óM‚µ‚½‘ŠèÀ•W‚ğ•Û‚µ‚Ä‚¨‚­
+    // å—ä¿¡ã—ãŸç›¸æ‰‹åº§æ¨™ã‚’ä¿æŒã—ã¦ãŠã
     srt.pos.x = msg->Msg.posinfobody.pos.x;
     srt.pos.y = msg->Msg.posinfobody.pos.y;
     srt.pos.z = msg->Msg.posinfobody.pos.z;
@@ -413,10 +456,10 @@ void P2PScene::PositionInfoHandler(
     srt.scale.y = msg->Msg.posinfobody.scale.y;
     srt.scale.z = msg->Msg.posinfobody.scale.z;
 
-    // ŠY“–ƒIƒuƒWƒFƒNƒg‚ğƒT[ƒ`
+    // è©²å½“ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã‚µãƒ¼ãƒ
     auto obj = m_objectmanager->FindById(msg->Msg.Header.ID);
     if (obj == nullptr) {
-        // ƒvƒŒƒCƒ„‰Šú‰»
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤åˆæœŸåŒ–
         obj = m_objectmanager->CreateRemoteWithId<enemy>(msg->Msg.Header.ID);
     }
 

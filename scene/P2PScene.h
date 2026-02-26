@@ -86,6 +86,15 @@ public:
 		uint32_t ipadr,
 		uint16_t port);
 
+
+	void BulletRegistHandler(
+		std::unique_ptr<MsgData> msg,
+		uint32_t ipadr,
+		uint16_t port);
+
+	// eM
+	void SendBulletRegist();
+
 	// ƒ}ƒVƒ“”Ô†
 	uint64_t getmachineid() {
 		return m_machineID;
