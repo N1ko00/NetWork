@@ -99,6 +99,19 @@ public:
         }
     }
 
+    template<class T, class Func>
+    void ForEach(Func&& func) {
+        for (auto id : m_aliveOrder) {
+            auto it = m_objects.find(id);
+            if (it == m_objects.end()) continue;
+
+            T* typed = dynamic_cast<T*>(it->second.get());
+            if (!typed) continue;
+
+            func(*typed);
+        }
+    }
+
     void Clear() {
         for (auto& kv : m_objects) {
             if (kv.second) kv.second->dispose();

@@ -19,8 +19,28 @@ void enemy::update(uint64_t dt) {
 
 }
 
+bool enemy::CheckHitByBullet(const Vector3& bulletPos)
+{
+	if (!m_isAlive) {
+		return false;
+	}
+
+	const Vector3 center = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f);
+	const Vector3 diff = bulletPos - center;
+	const float radiusSq = m_collisionRadius * m_collisionRadius;
+	if (diff.LengthSquared() <= radiusSq) {
+		m_isAlive = false;
+		return true;
+	}
+
+	return false;
+}
+
 void enemy::draw(uint64_t dt) 
 {
+	if (!m_isAlive) {
+		return;
+	}
 
 	Matrix4x4 mtx = m_srt.GetMatrix();
 

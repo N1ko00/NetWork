@@ -116,6 +116,7 @@ void P2PScene::update(uint64_t deltatime)
 
     // 受信しているメッセージをすべて処理
     p2pnetworkupdate();
+    HandleBulletEnemyCollisions();
 }
 
 /**
@@ -408,6 +409,43 @@ void P2PScene::SendBulletRegist()
         bmsg.Msg.bulletregistbody.rotation = b.vel;
         bmsg.Msg.bulletregistbody.scale = Vector3(1.0f, 1.0f, 1.0f);
         m_net->SendAll(bmsg);
+    }
+}
+
+void P2PScene::HandleBulletEnemyCollisions()
+{
+    auto& bullets = m_player->GetBullets();
+    if (bullets.empty()) {
+        return;
+    }
+
+    std::vector<std::size_t> hitBulletIndices;
+    hitBulletIndices.reserve(bullets.size());
+
+    for (std::size_t bulletIndex = 0; bulletIndex < bullets.size(); ++bulletIndex)
+    {
+        const Vector3 bulletPos = bullets[bulletIndex].pos;
+        bool hit = false;
+
+        m_objectmanager->ForEach<enemy>([&](enemy& target)
+            {
+                if (hit || !target.IsAlive()) {
+                    return;
+                }
+
+                if (target.CheckHitByBullet(bulletPos)) {
+                    hit = true;
+                }
+            });
+
+        if (hit) {
+            hitBulletIndices.push_back(bulletIndex);
+        }
+    }
+
+    for (auto it = hitBulletIndices.rbegin(); it != hitBulletIndices.rend(); ++it)
+    {
+        m_player->RemoveBulletAt(*it);
     }
 }
 

@@ -23,6 +23,9 @@ public:
 	void init() override;
 	void dispose() override;
 
+	bool CheckHitByBullet(const Vector3& bulletPos);
+	bool IsAlive() const { return m_isAlive; }
+
 	// 動きのパラメータ
 	const float VALUE_MOVE_MODEL = 2.0f;					// 移動速度
 	const float VALUE_ROTATE_MODEL = PI * 0.02f;			// 回転速度
@@ -41,4 +44,7 @@ private:
 	Vector3	m_move = { 0.0f,0.0f,0.0f };
 	// 目標回転角度
 	Vector3	m_destrot = { 0.0f,0.0f,0.0f };
+
+	bool m_isAlive = true;
+	float m_collisionRadius = 18.0f;
 };

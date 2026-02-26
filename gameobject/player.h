@@ -30,6 +30,9 @@ public:
 
 	void SpawnLocalBullet();
 	void SpawnNetworkBullet(const Vector3& pos, const Vector3& dir);
+	std::vector<Bullet>& GetBullets() { return m_bullets; }
+	const std::vector<Bullet>& GetBullets() const { return m_bullets; }
+	void RemoveBulletAt(std::size_t index);
 	const std::vector<Bullet>& GetJustFiredBullets() const { return m_justFiredBullets; }
 	void ClearJustFiredBullets() { m_justFiredBullets.clear(); }
 

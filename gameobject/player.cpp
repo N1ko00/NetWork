@@ -1,5 +1,6 @@
 #include		"player.h"
 #include     <algorithm>
+#include     <cstddef>
 #include     <cmath>
 #include    "../system/CDirectInput.h"
 #include    "../utility/pathutil.h"
@@ -50,6 +51,12 @@ void player::SpawnNetworkBullet(const Vector3& pos, const Vector3& dir)
 	bullet.vel = normalized * 15.0f;
 	bullet.life = 180.0f;
 	m_bullets.push_back(bullet);
+}
+
+void player::RemoveBulletAt(std::size_t index)
+{
+	if (index >= m_bullets.size()) return;
+	m_bullets.erase(m_bullets.begin() + static_cast<std::ptrdiff_t>(index));
 }
 
 void player::update(uint64_t dt) {
