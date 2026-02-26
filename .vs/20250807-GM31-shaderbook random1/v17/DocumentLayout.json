@@ -3,6 +3,9 @@
   "WorkspaceRootPath": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files (x86)\\Windows Kits\\10\\Source\\10.0.26100.0\\ucrt\\internal\\report_runtime_error.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{86EEF169-FE6F-4880-9B50-3705C049952C}|20250807-GM31-shaderbook random1.vcxproj|C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\system\\scenemanager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{86EEF169-FE6F-4880-9B50-3705C049952C}|20250807-GM31-shaderbook random1.vcxproj|solutionrelative:system\\scenemanager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -63,19 +66,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "report_runtime_error.cpp",
+              "DocumentMoniker": "C:\\Program Files (x86)\\Windows Kits\\10\\Source\\10.0.26100.0\\ucrt\\internal\\report_runtime_error.cpp",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\..\\..\\Program Files (x86)\\Windows Kits\\10\\Source\\10.0.26100.0\\ucrt\\internal\\report_runtime_error.cpp",
+              "ToolTip": "C:\\Program Files (x86)\\Windows Kits\\10\\Source\\10.0.26100.0\\ucrt\\internal\\report_runtime_error.cpp",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\..\\..\\Program Files (x86)\\Windows Kits\\10\\Source\\10.0.26100.0\\ucrt\\internal\\report_runtime_error.cpp",
+              "ViewState": "AgIAABAAAAAAAAAAAAAzwBcAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-02-26T20:01:40.372Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "scenemanager.cpp",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\system\\scenemanager.cpp",
               "RelativeDocumentMoniker": "system\\scenemanager.cpp",
               "ToolTip": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\system\\scenemanager.cpp",
               "RelativeToolTip": "system\\scenemanager.cpp",
-              "ViewState": "AgIAACcAAAAAAAAAAAAAACoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAADgAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-02-26T19:46:48.352Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "scenemanager.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\system\\scenemanager.h",
               "RelativeDocumentMoniker": "system\\scenemanager.h",
@@ -83,12 +99,11 @@
               "RelativeToolTip": "system\\scenemanager.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-26T19:46:23.631Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-26T19:46:23.631Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ResultScene.cpp",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\ResultScene.cpp",
               "RelativeDocumentMoniker": "ResultScene.cpp",
@@ -100,7 +115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "ResultScene.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\ResultScene.h",
               "RelativeDocumentMoniker": "ResultScene.h",
@@ -112,7 +127,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "objectmanager.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\gameobject\\objectmanager.h",
               "RelativeDocumentMoniker": "gameobject\\objectmanager.h",
@@ -120,12 +135,11 @@
               "RelativeToolTip": "gameobject\\objectmanager.h",
               "ViewState": "AgIAAKEAAAAAAAAAAAAAAHwAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-26T18:17:12.769Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-26T18:17:12.769Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "enemy.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\gameobject\\enemy.h",
               "RelativeDocumentMoniker": "gameobject\\enemy.h",
@@ -137,7 +151,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "enemy.cpp",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\gameobject\\enemy.cpp",
               "RelativeDocumentMoniker": "gameobject\\enemy.cpp",
@@ -149,7 +163,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "P2PScene.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\scene\\P2PScene.h",
               "RelativeDocumentMoniker": "scene\\P2PScene.h",
@@ -161,7 +175,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "P2PScene.cpp",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\scene\\P2PScene.cpp",
               "RelativeDocumentMoniker": "scene\\P2PScene.cpp",
@@ -173,7 +187,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "player.cpp",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\gameobject\\player.cpp",
               "RelativeDocumentMoniker": "gameobject\\player.cpp",
@@ -185,7 +199,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "player.h",
               "DocumentMoniker": "C:\\Users\\nsgmt\\OneDrive\\Desktop\\HAL\\3\\GN\\GN\\gameobject\\player.h",
               "RelativeDocumentMoniker": "gameobject\\player.h",

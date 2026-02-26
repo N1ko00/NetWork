@@ -1,18 +1,23 @@
 #include	"scenemanager.h"
 #include	"SceneClassFactory.h"
-#include	<cassert>
 #include	<utility>
+#include    <iostream>
 
 namespace {
-	void ApplySceneChange(const std::string& sceneName,
+	bool ApplySceneChange(const std::string& sceneName,
 		std::unordered_map<std::string, std::unique_ptr<IScene>>& scenes,
 		std::string& currentSceneName)
 	{
 		auto obj = SceneClassFactory::getInstance().create(sceneName);
-		assert(obj);
+		if (!obj) {
+			std::cerr << "[SceneManager] Scene is not registered: " << sceneName << "\n";
+			return false;
+		}
+
 		obj->init();
 		currentSceneName = sceneName;
 		scenes[currentSceneName] = std::move(obj);
+		return true;
 	}
 }
 
@@ -63,4 +68,6 @@ void SceneManager::Update(uint64_t deltatime)
 		m_pendingSceneName.clear();
 		ApplySceneChange(next, m_scenes, m_currentSceneName);
 	}
+
+	m_isUpdating = false;
 }
