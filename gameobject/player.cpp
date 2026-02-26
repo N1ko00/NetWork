@@ -1,9 +1,12 @@
 #include		"player.h"
+#include     <algorithm>
+#include     <cmath>
 #include    "../system/CDirectInput.h"
 #include    "../utility/pathutil.h"
 #include		"../system/meshmanager.h"
 #include		"../system/camera.h"
 #include	"../system/LineDrawer.h"
+#include    "../system/SphereDrawer.h"
 
 void player::init() {
 
@@ -102,6 +105,30 @@ void player::update(uint64_t dt) {
 	   m_srt.rot.y += PI * 2.0f;
    }
 
+   // left click to shoot balls
+   if (CDirectInput::GetInstance().GetMouseLButtonTrigger())
+   {
+	   Vector3 shotDir(-std::sin(m_srt.rot.y), 0.0f, -std::cos(m_srt.rot.y));
+	   shotDir.Normalize();
+
+	   Bullet bullet{};
+	   bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + shotDir * 20.0f;
+	   bullet.vel = shotDir * 15.0f;
+	   bullet.life = 180.0f;
+	   m_bullets.push_back(bullet);
+   }
+
+   for (auto& bullet : m_bullets)
+   {
+	   bullet.pos += bullet.vel;
+	   bullet.life -= 1.0f;
+   }
+
+   m_bullets.erase(
+	   std::remove_if(m_bullets.begin(), m_bullets.end(),
+		   [](const Bullet& bullet) { return bullet.life <= 0.0f; }),
+	   m_bullets.end());
+
    // リセット
    if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN))
    {// リセット
@@ -151,6 +178,11 @@ void player::draw(uint64_t dt) {
 			start, 
 			direction[loopcnt], 
 			col[loopcnt]);
+	}
+
+	for (const auto& bullet : m_bullets)
+	{
+		SphereDrawerDraw(5.0f, Color(1.0f, 0.8f, 0.2f, 1.0f), bullet.pos.x, bullet.pos.y, bullet.pos.z);
 	}
 }
 

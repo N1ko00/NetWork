@@ -8,6 +8,7 @@
 #include "../system/CStaticMesh.h"
 #include "../system/CStaticMeshRenderer.h"
 #include "../system/LineDrawer.h"
+#include "../system/SphereDrawer.h"
 
 namespace {
     //------------------------------------------------------------------------------
@@ -164,6 +165,7 @@ void P2PScene::init()
 
     // ü•`‰Šú‰»
     LineDrawerInit();
+    SphereDrawerInit();
 
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include	<memory>
+#include    <vector>
 #include	"gameobject.h"
 #include	"../system/CStaticMesh.h"
 #include	"../system/CStaticMeshRenderer.h"
@@ -36,4 +37,12 @@ private:
 	Vector3	m_move = { 0.0f,0.0f,0.0f };
 	// –Ú•W‰ñ“]Šp“x
 	Vector3	m_destrot = { 0.0f,0.0f,0.0f };
+
+	struct Bullet {
+		Vector3 pos;
+		Vector3 vel;
+		float life = 0.0f;
+	};
+
+	std::vector<Bullet> m_bullets;
 };
