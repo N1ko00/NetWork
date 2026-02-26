@@ -14,10 +14,10 @@ void DebugUI::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 
     // ImGui 全体設定（IO: Input/Output 設定オブジェクト）
     ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
     // キーボード・ゲームパッドでの操作を有効化（任意）
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // キーボード操作を有効
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // ゲームパッド操作を有効
 
     // ─────────────────────────────────────────────
     // フォント設定（日本語表示に必須）
@@ -33,8 +33,9 @@ void DebugUI::Init(ID3D11Device* device, ID3D11DeviceContext* context)
     );
 
     // 追加したフォントをデフォルトに設定（ImGui::Text 等がこのフォントで描画される）
-    io.FontDefault = io.Fonts->Fonts.back();
-
+    if (!io.Fonts->Fonts.empty()) {
+        io.FontDefault = io.Fonts->Fonts.back();
+    }
     // ─────────────────────────────────────────────
     // 見た目（スタイル）設定
     // ─────────────────────────────────────────────
@@ -67,7 +68,7 @@ void DebugUI::RedistDebugFunction(std::function<void(void)> f)
     m_debugfunction.push_back(std::move(f));
 }
 
-void DebugUI::Render()
+void DebugUI::BeginFrame()
 {
     // ─────────────────────────────────────────────
     // 1) 新しいフレームの開始（バックエンド → ImGui の順）
@@ -75,12 +76,15 @@ void DebugUI::Render()
     ImGui_ImplDX11_NewFrame();  // DX11側：フレーム準備（描画関連の準備）
     ImGui_ImplWin32_NewFrame(); // Win32側：入力状態更新など
     ImGui::NewFrame();          // ImGui側：このフレームのUI構築開始
+}
 
-    // ─────────────────────────────────────────────
-    // 2) ここからUIを構築する（Begin/End の間でウィジェットを並べる）
-    // ─────────────────────────────────────────────
-    ImGui::Begin("Debug Information"); // ウィンドウ開始（タイトル）
+void DebugUI::EndFrame() {
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
 
+void DebugUI::Render(){
+    ImGui::Begin("Debug Information");
     // フレームレートなどの統計情報を表示
     // 注意：ImGui::Text は printf 形式なので、文字列直渡しは避けるのが安全
     ImGuiIO& io = ImGui::GetIO();
@@ -97,12 +101,4 @@ void DebugUI::Render()
     {
         f();
     }
-
-    // ─────────────────────────────────────────────
-    // 4) UIの確定 → 描画
-    //    ImGui::Render() で「描画コマンド（DrawData）」を生成し、
-    //    それをDX11バックエンドに渡して実際に描画する。
-    // ─────────────────────────────────────────────
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

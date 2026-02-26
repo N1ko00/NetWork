@@ -20,6 +20,9 @@ public:
     // デバッグ表示関数の登録
     static void RedistDebugFunction(std::function<void(void)> f);
 
+    static void BeginFrame();
+    static void EndFrame();
+
     static void Render();
 
     static void DisposeUI();

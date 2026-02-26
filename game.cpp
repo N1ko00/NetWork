@@ -41,11 +41,15 @@ void gamedraw(uint64_t deltatime)
 	// レンダリング前処理
 	Renderer::Begin();
 
+	DebugUI::BeginFrame();
+
 	// シーンマネージャの描画
 	SceneManager::Draw(deltatime);
 
 	// デバッグUIの描画
 	DebugUI::Render();
+
+	DebugUI::EndFrame();
 
 	// レンダリング後処理
 	Renderer::End();
