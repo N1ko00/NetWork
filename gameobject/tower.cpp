@@ -7,6 +7,7 @@ void tower::init() {
 	m_meshrenderer = MeshManager::getRenderer<CStaticMeshRenderer>("Tower");
 	m_shader = MeshManager::getShader<CShader>("unlightshader");
 
+	m_srt.pos = Vector3(0, 0, 0);
 	m_srt.scale = Vector3(0.1f, 0.1f, 0.1f);
 	m_srt.rot = Vector3(0, 0, 0);
 }

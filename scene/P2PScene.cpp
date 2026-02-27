@@ -214,17 +214,6 @@ void P2PScene::init()
     m_cameraYaw = m_player->getSRT().rot.y;
 
 
-    m_towers[0] = m_objectmanager->CreateLocal<tower>();
-    m_towers[1] = m_objectmanager->CreateLocal<tower>();
-
-    SRT towerSrt = m_towers[0]->getSRT();
-    towerSrt.pos = Vector3(-120.0f, 0.0f, 80.0f);
-    m_towers[0]->setSRT(towerSrt);
-
-    towerSrt = m_towers[1]->getSRT();
-    towerSrt.pos = Vector3(120.0f, 0.0f, 80.0f);
-    m_towers[1]->setSRT(towerSrt);
-
     // 後から参加した端末にも自分の状態が渡るよう初期同期を送る
     SendRegist();
 
@@ -274,7 +263,6 @@ void P2PScene::resourceLoader()
     loadStaticMesh("assets/model/tank/tank10_top.x", "tank10_top.x", "assets/model/tank/");
     loadStaticMesh("assets/model/tank/tank10_cat.x", "tank10_cat.x", "assets/model/tank/");
     loadStaticMesh("assets/model/tank/tank10_pipe.x", "tank10_pipe.x", "assets/model/tank/");
-    loadStaticMesh("assets/model/tower/Only Tower.GM31BIN", "Tower", "assets/model/tower/");
 
      {
         std::filesystem::path  fpath = utility::PathFromUtf8OrCp932("assets/model/car001.x");
