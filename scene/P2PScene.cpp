@@ -121,7 +121,7 @@ void P2PScene::update(uint64_t deltatime)
 
     // マウス左右入力でカメラヨーを更新（上下回転なし）
     const float mouseSensitivity = 0.005f;
-    m_cameraYaw -= static_cast<float>(CDirectInput::GetInstance().GetMouseMoveX()) * mouseSensitivity;
+    m_cameraYaw += static_cast<float>(CDirectInput::GetInstance().GetMouseMoveX()) * mouseSensitivity;
     if (m_cameraYaw > PI) m_cameraYaw -= PI * 2.0f;
     if (m_cameraYaw < -PI) m_cameraYaw += PI * 2.0f;
 
