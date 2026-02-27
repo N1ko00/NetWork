@@ -9,6 +9,9 @@
 #include "../system/CStaticMeshRenderer.h"
 #include "../system/LineDrawer.h"
 #include "../system/SphereDrawer.h"
+#include "../system/CTexture.h"
+#include "../system/CVertexBuffer.h"
+#include "../system/CMaterial.h"
 #include "../system/scenemanager.h"
 
 namespace {
@@ -143,6 +146,8 @@ void P2PScene::update(uint64_t deltatime)
         SceneManager::SetCurrentScene("ResultScene");
         return;
     }
+
+    UpdateExplosionEffects(static_cast<float>(deltatime) / 16.6667f);
 }
 
 /**
@@ -155,6 +160,7 @@ void P2PScene::draw(uint64_t deltatime)
 	m_camera->Draw();
 
     m_objectmanager->DrawAll(deltatime);
+    DrawExplosionEffects();
 }
 
 /**
@@ -171,6 +177,8 @@ void P2PScene::init()
 
 	// リソースを読み込む
 	resourceLoader();
+
+    InitExplosionEffectResources();
 
     // p2pnetowrk start
     p2pnetworkstart();
@@ -276,6 +284,13 @@ void P2PScene::p2pnetworkstart()
             [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
             {
                 RegistHandler(std::move(msg), ip, port);
+            });
+
+        net.RegisterHandler(
+            MessageType::EXPLOSIONSTART,
+            [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+            {
+                ExplosionStartHandler(std::move(msg), ip, port);
             });
     };
 
@@ -480,6 +495,7 @@ void P2PScene::HandleBulletEnemyCollisions()
         }
         const Vector3 bulletPos = bullets[bulletIndex].pos;
         bool hit = false;
+        ObjectId hitTargetId = 0;
 
         m_objectmanager->ForEach<enemy>([&](enemy& target)
             {
@@ -488,6 +504,8 @@ void P2PScene::HandleBulletEnemyCollisions()
                 }
 
                 if (target.CheckHitByBullet(bulletPos)) {
+                    hitTargetId = target.GetObjectId();
+                    SpawnExplosionEffect(target.getSRT().pos + Vector3(0.0f, m_explosionYOffset, 0.0f), true, hitTargetId);
                     hit = true;
                 }
             });
@@ -525,6 +543,120 @@ bool P2PScene::HandleEnemyBulletPlayerCollision()
     }
 
     return !removeIndices.empty();
+}
+
+void P2PScene::InitExplosionEffectResources()
+{
+    m_explosionShader = MeshManager::getShader<CShader>("unlightshader");
+
+    MATERIAL mtrl{};
+    mtrl.Ambient = Color(0, 0, 0, 0);
+    mtrl.Diffuse = Color(1, 1, 1, 1);
+    mtrl.Emission = Color(0, 0, 0, 0);
+    mtrl.Specular = Color(0, 0, 0, 0);
+    mtrl.Shiness = 0;
+    mtrl.TextureEnable = TRUE;
+    m_explosionMaterial.Create(mtrl);
+
+    bool loaded = m_explosionTexture.Load(std::filesystem::path("assets/texture/elimination.png"));
+    if (!loaded) {
+        loaded = m_explosionTexture.Load(std::filesystem::path("assets/texture/Eliminate.png"));
+    }
+    assert(loaded == true);
+
+    m_explosionVertices.clear();
+    m_explosionVertices.resize(4);
+    m_explosionVertices[0].Position = Vector3(-0.5f, 0.5f, 0.0f);
+    m_explosionVertices[1].Position = Vector3(0.5f, 0.5f, 0.0f);
+    m_explosionVertices[2].Position = Vector3(-0.5f, -0.5f, 0.0f);
+    m_explosionVertices[3].Position = Vector3(0.5f, -0.5f, 0.0f);
+
+    m_explosionVertices[0].TexCoord = Vector2(0.0f, 0.0f);
+    m_explosionVertices[1].TexCoord = Vector2(1.0f, 0.0f);
+    m_explosionVertices[2].TexCoord = Vector2(0.0f, 1.0f);
+    m_explosionVertices[3].TexCoord = Vector2(1.0f, 1.0f);
+    for (auto& v : m_explosionVertices) {
+        v.Diffuse = Color(1, 1, 1, 1);
+        v.Normal = Vector3(0, 0, -1);
+    }
+    m_explosionVertexBuffer.Create(m_explosionVertices);
+}
+
+void P2PScene::SpawnExplosionEffect(const Vector3& worldPos, bool broadcast, ObjectId hitTargetId)
+{
+    m_explosionEffects.push_back({ worldPos, m_explosionLifeFrame, m_explosionLifeFrame });
+
+    if (!broadcast || !m_net) {
+        return;
+    }
+
+    MsgData msg{};
+    msg.Msg.Header.type = MessageType::EXPLOSIONSTART;
+    msg.Msg.Header.ID = hitTargetId;
+    msg.Msg.Header.seqenceno = 0;
+    msg.Msg.explosionstartbody.pos = worldPos;
+    m_net->SendAll(msg);
+}
+
+void P2PScene::UpdateExplosionEffects(float dt)
+{
+    for (auto& e : m_explosionEffects) {
+        e.life -= dt;
+    }
+
+    m_explosionEffects.erase(
+        std::remove_if(m_explosionEffects.begin(), m_explosionEffects.end(),
+            [](const ExplosionEffect& e) { return e.life <= 0.0f; }),
+        m_explosionEffects.end());
+}
+
+void P2PScene::DrawExplosionEffects()
+{
+    if (m_explosionEffects.empty() || !m_explosionShader || !m_camera) {
+        return;
+    }
+
+    Matrix4x4 viewmtx = m_camera->GetViewMatrix();
+    Matrix4x4 t = viewmtx.Transpose();
+
+    ID3D11DeviceContext* devicecontext = Renderer::GetDeviceContext();
+    devicecontext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+    m_explosionShader->SetGPU();
+    m_explosionVertexBuffer.SetGPU();
+    m_explosionMaterial.SetGPU();
+    m_explosionTexture.SetGPU();
+
+    for (const auto& e : m_explosionEffects)
+    {
+        const float lifeRate = std::max(0.0f, e.life / e.maxLife);
+        const float size = m_explosionSize * (1.0f + (1.0f - lifeRate) * 0.6f);
+
+        Matrix4x4 world = Matrix4x4::Identity;
+        world._11 = t._11 * size; world._12 = t._12 * size; world._13 = t._13 * size;
+        world._21 = t._21 * size; world._22 = t._22 * size; world._23 = t._23 * size;
+        world._31 = t._31 * size; world._32 = t._32 * size; world._33 = t._33 * size;
+        world._41 = e.pos.x;      world._42 = e.pos.y;      world._43 = e.pos.z;
+
+        Renderer::SetWorldMatrix(&world);
+        devicecontext->Draw(4, 0);
+    }
+}
+
+void P2PScene::ExplosionStartHandler(
+    std::unique_ptr<MsgData> msg,
+    uint32_t ipadr,
+    uint16_t port)
+{
+    (void)ipadr;
+    (void)port;
+
+    if (m_player && msg->Msg.Header.ID == m_player->GetObjectId()) {
+        return;
+    }
+
+    const Vector3 pos = msg->Msg.explosionstartbody.pos;
+    SpawnExplosionEffect(pos, false, msg->Msg.Header.ID);
 }
 
 void P2PScene::RegistHandler(

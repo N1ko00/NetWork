@@ -5,11 +5,16 @@
 #include <array>
 #include <memory>
 #include <map>
+#include <vector>
 
 #include "../system/camera.h"
 #include "../system/IScene.h"
 #include "../system/SceneClassFactory.h"
 #include "../system/DirectWrite.h"
+#include "../system/CVertexBuffer.h"
+#include "../system/CMaterial.h"
+#include "../system/CTexture.h"
+#include "../system/CShader.h"
 #include "../gameobject/field.h"
 #include "../gameobject/player.h"
 #include "../gameobject/enemy.h"
@@ -97,11 +102,20 @@ public:
 		uint32_t ipadr,
 		uint16_t port);
 
+	void ExplosionStartHandler(
+		std::unique_ptr<MsgData> msg,
+		uint32_t ipadr,
+		uint16_t port);
+
 	// 
 	void SendRegist();
 	void SendBulletRegist();
 	void HandleBulletEnemyCollisions();
 	bool HandleEnemyBulletPlayerCollision();
+	void SpawnExplosionEffect(const Vector3& worldPos, bool broadcast, ObjectId hitTargetId);
+	void UpdateExplosionEffects(float dt);
+	void DrawExplosionEffects();
+	void InitExplosionEffectResources();
 
 	// マシン番号
 	uint64_t getmachineid() {
@@ -147,6 +161,24 @@ private:
 
 	// マシン番号（ユニークなIDをマシンマインつけるために必要）
 	uint64_t m_machineID = 0;
+
+	struct ExplosionEffect {
+		Vector3 pos{};
+		float life = 0.0f;
+		float maxLife = 0.0f;
+	};
+
+	std::vector<ExplosionEffect> m_explosionEffects{};
+
+	CVertexBuffer<VERTEX_3D> m_explosionVertexBuffer{};
+	std::vector<VERTEX_3D>   m_explosionVertices{};
+	CMaterial                m_explosionMaterial{};
+	CTexture                 m_explosionTexture{};
+	CShader* m_explosionShader = nullptr;
+
+	float m_explosionSize = 40.0f;
+	float m_explosionLifeFrame = 20.0f;
+	float m_explosionYOffset = 10.0f;
 };
 
 REGISTER_CLASS(P2PScene)
