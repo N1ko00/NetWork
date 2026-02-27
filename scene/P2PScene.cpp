@@ -558,7 +558,7 @@ void P2PScene::InitExplosionEffectResources()
     mtrl.TextureEnable = TRUE;
     m_explosionMaterial.Create(mtrl);
 
-    bool loaded = m_explosionTexture.Load(std::filesystem::path("assets/texture/elimination.png"));
+    bool loaded = m_explosionTexture.Load(std::filesystem::path("assets/texture/Eliminate.png"));
     if (!loaded) {
         loaded = m_explosionTexture.Load(std::filesystem::path("assets/texture/Eliminate.png"));
     }
