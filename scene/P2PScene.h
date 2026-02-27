@@ -20,6 +20,8 @@
 #include "../gameobject/field.h"
 #include "../gameobject/player.h"
 #include "../gameobject/enemy.h"
+#include "../gameobject/tower.h"
+
 
 #include "../gameobject/objectmanager.h"
 
@@ -144,6 +146,8 @@ private:
 	* @brief “G
 	*/
 	enemy* m_enemy{};
+
+	std::array<tower*, 2> m_towers{};
 
 	// DirectWrite
 	std::unique_ptr<DirectWrite> m_directwrite;
