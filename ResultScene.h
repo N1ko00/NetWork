@@ -2,6 +2,9 @@
 
 #include "system/IScene.h"
 #include "system/SceneClassFactory.h"
+#include "system/CSprite.h"
+
+#include <memory>
 
 class ResultScene : public IScene {
 public:
@@ -14,6 +17,10 @@ public:
 
     Camera* GetCamera() override { return nullptr; }
     uint64_t getmachineid() override { return 0; }
+
+private:
+    std::unique_ptr<CSprite> m_backgroundSprite;
+    std::unique_ptr<CSprite> m_loseSprite;
 };
 
 REGISTER_CLASS(ResultScene)
