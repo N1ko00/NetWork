@@ -238,30 +238,30 @@ void P2PScene::resourceLoader()
  */
 void P2PScene::p2pnetworkstart()
 {
-    // NetworkSystem の生成
-    m_net = std::make_unique<NetworkSystem>();
-
-    // 受信メッセージ処理を登録
-    m_net->RegisterHandler(
-        MessageType::POSITIONINFO,
-        [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+    auto registerHandlers = [this](NetworkSystem& net)
         {
-            PositionInfoHandler(std::move(msg), ip, port);
-        });
+        // 受信メッセージ処理を登録
+        net.RegisterHandler(
+            MessageType::POSITIONINFO,
+            [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+            {
+                PositionInfoHandler(std::move(msg), ip, port);
+            });
 
-    m_net->RegisterHandler(
-        MessageType::BULLETREGIST,
-        [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
-        {
-            BulletRegistHandler(std::move(msg), ip, port);
-        });
+        net.RegisterHandler(
+            MessageType::BULLETREGIST,
+            [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+            {
+                BulletRegistHandler(std::move(msg), ip, port);
+            });
 
-    m_net->RegisterHandler(
-        MessageType::REGIST,
-        [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
-        {
-            RegistHandler(std::move(msg), ip, port);
-        });
+        net.RegisterHandler(
+            MessageType::REGIST,
+            [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+            {
+                RegistHandler(std::move(msg), ip, port);
+            });
+    };
 
     const std::array<std::string,3> filename={
         "pia1/config.toml",
@@ -345,14 +345,17 @@ void P2PScene::p2pnetworkstart()
             continue;
         }
 
+        auto trialNet = std::make_unique<NetworkSystem>();
+        registerHandlers(*trialNet);
+
         // 通信相手の登録
         std::string err;
         for (const auto& p : peers) {
-            m_net->AddPeer(p.ip.c_str(), p.port, &err);
+            trialNet->AddPeer(p.ip.c_str(), p.port, &err);
         }
 
         // ネットワーク開始（失敗チェック）
-        const bool ok = m_net->Start(
+        const bool ok = trialNet->Start(
             *myport,
             peers[0].ip.c_str(),
             peers[0].port,
@@ -363,9 +366,11 @@ void P2PScene::p2pnetworkstart()
 
         if (!ok) {
             std::cerr << "NetworkSystem::Start failed for " << filename[selectno] << "\n";
-            m_net = std::make_unique<NetworkSystem>();
+          
             continue;
         }
+
+        m_net = std::move(trialNet);
 
         std::cout << "auto selected config: " << filename[selectno] << "\n";
         std::cout << "myport:" << *myport << "\n";
