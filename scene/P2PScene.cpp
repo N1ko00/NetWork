@@ -115,8 +115,8 @@ void P2PScene::update(uint64_t deltatime)
 {
     m_objectmanager->UpdateAll(deltatime);
 
-    // カメラを自機に追従:
-    // 位置 = 自機モデルの上、向き = 自機モデルの向き
+    // カメラを自機に追従
+    // 位置は自機の少し上、後方
     if (m_player && m_camera)
     {
         const SRT & playerSrt = m_player->getSRT();
@@ -125,8 +125,14 @@ void P2PScene::update(uint64_t deltatime)
         Vector3 forward(-std::sin(yaw), 0.0f, -std::cos(yaw));
         forward.Normalize();
         
-        m_camera->SetPosition(playerPos + Vector3(0.0f, 40.0f, 0.0f));
-        m_camera->SetLookat(playerPos + forward * 100.0f);
+        const Vector3 up(0.0f, 1.0f, 0.0f);
+        const float cameraHeight = 18.0f;
+        const float cameraBackDistance = 28.0f;
+        const float lookAheadDistance = 35.0f;
+        const float lookUpOffset = 6.0f;
+
+        m_camera->SetPosition(playerPos + up * cameraHeight - forward * cameraBackDistance);
+        m_camera->SetLookat(playerPos + up * lookUpOffset + forward * lookAheadDistance);
         m_camera->SetUP(Vector3(0.0f, 1.0f, 0.0f));
     }
 
