@@ -13,6 +13,7 @@
 #include "../system/CVertexBuffer.h"
 #include "../system/CMaterial.h"
 #include "../system/scenemanager.h"
+#include "../system/CDirectInput.h"
 
 namespace {
     //------------------------------------------------------------------------------
@@ -118,14 +119,20 @@ void P2PScene::update(uint64_t deltatime)
 {
     m_objectmanager->UpdateAll(deltatime);
 
-    // カメラを自機に追従
-    // 位置は自機の少し上、後方
+    // マウス左右入力でカメラヨーを更新（上下回転なし）
+    const float mouseSensitivity = 0.005f;
+    m_cameraYaw -= static_cast<float>(CDirectInput::GetInstance().GetMouseMoveX()) * mouseSensitivity;
+    if (m_cameraYaw > PI) m_cameraYaw -= PI * 2.0f;
+    if (m_cameraYaw < -PI) m_cameraYaw += PI * 2.0f;
+
+    // カメラを自機に追従し、向きはカメラヨー基準に固定
     if (m_player && m_camera)
     {
-        const SRT & playerSrt = m_player->getSRT();
+        SRT playerSrt = m_player->getSRT();
+        playerSrt.rot.y = m_cameraYaw;
+        m_player->setSRT(playerSrt);
         const Vector3 playerPos = playerSrt.pos;
-        const float yaw = playerSrt.rot.y;
-        Vector3 forward(-std::sin(yaw), 0.0f, -std::cos(yaw));
+        Vector3 forward(-std::sin(m_cameraYaw), 0.0f, -std::cos(m_cameraYaw));  
         forward.Normalize();
         
         const Vector3 up(0.0f, 1.0f, 0.0f);
@@ -204,6 +211,8 @@ void P2PScene::init()
 
 	// プレイヤ初期化
     m_player = m_objectmanager->CreateLocal<player>();
+    m_cameraYaw = m_player->getSRT().rot.y;
+
 
     // 後から参加した端末にも自分の状態が渡るよう初期同期を送る
     SendRegist();

@@ -128,6 +128,7 @@ private:
 	 * @brief このシーンで使用するカメラ
 	 */
 	std::unique_ptr<Camera> m_camera;
+	float m_cameraYaw = 0.0f;
 
 	/**
 	* @brief フィールド

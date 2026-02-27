@@ -151,6 +151,14 @@ public:
 		}	
 	}
 
+	LONG GetMouseMoveX() const {
+		return m_MouseState.lX;
+	}
+
+	LONG GetMouseMoveY() const {
+		return m_MouseState.lY;
+	}
+
 	//----------------------------------
 	// マウスＸ座標取得処理
 	//----------------------------------
