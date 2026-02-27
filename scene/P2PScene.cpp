@@ -115,6 +115,21 @@ void P2PScene::update(uint64_t deltatime)
 {
     m_objectmanager->UpdateAll(deltatime);
 
+    // カメラを自機に追従:
+    // 位置 = 自機モデルの上、向き = 自機モデルの向き
+    if (m_player && m_camera)
+    {
+        const SRT & playerSrt = m_player->getSRT();
+        const Vector3 playerPos = playerSrt.pos;
+        const float yaw = playerSrt.rot.y;
+        Vector3 forward(-std::sin(yaw), 0.0f, -std::cos(yaw));
+        forward.Normalize();
+        
+        m_camera->SetPosition(playerPos + Vector3(0.0f, 40.0f, 0.0f));
+        m_camera->SetLookat(playerPos + forward * 100.0f);
+        m_camera->SetUP(Vector3(0.0f, 1.0f, 0.0f));
+    }
+
     // 受信しているメッセージをすべて処理
     p2pnetworkupdate();
     HandleBulletEnemyCollisions();
@@ -165,11 +180,6 @@ void P2PScene::init()
 
     // 後から参加した端末にも自分の状態が渡るよう初期同期を送る
     SendRegist();
-
-    // カメラの設定
-	DebugUI::RedistDebugFunction([this]() {
-		debugUICamera();
-		});
 
     // 線描初期化
     LineDrawerInit();
@@ -239,7 +249,7 @@ void P2PScene::resourceLoader()
 void P2PScene::p2pnetworkstart()
 {
     auto registerHandlers = [this](NetworkSystem& net)
-        {
+    {
         // 受信メッセージ処理を登録
         net.RegisterHandler(
             MessageType::POSITIONINFO,
