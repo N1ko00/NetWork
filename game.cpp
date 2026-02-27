@@ -22,7 +22,7 @@ void gameinit()
 	SceneManager::Init();
 
 	//　シーン選択
-	SceneManager::SetCurrentScene("P2PScene");
+	SceneManager::SetCurrentScene("TitleScene");
 
 }
 
