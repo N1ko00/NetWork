@@ -6,7 +6,6 @@
 #include    "../utility/pathutil.h"
 #include		"../system/meshmanager.h"
 #include		"../system/camera.h"
-#include	"../system/LineDrawer.h"
 #include    "../system/SphereDrawer.h"
 
 void player::init() {
@@ -185,37 +184,6 @@ void player::draw(uint64_t dt) {
 	MeshManager::getRenderer<CStaticMeshRenderer>("tank10_top.x")->Draw();
 	MeshManager::getRenderer<CStaticMeshRenderer>("tank10_cat.x")->Draw();
 	MeshManager::getRenderer<CStaticMeshRenderer>("tank10_pipe.x")->Draw();
-
-	// ƒJƒƒ‰Žæ“¾
-	IScene* ownerscene = GetOwnerScene();
-	const Camera* camera = ownerscene->GetCamera();
-
-	const Matrix4x4 vmtx = camera->GetViewMatrix();
-
-	Vector3 forward(vmtx._13, vmtx._23, vmtx._33);
-	Vector3 right(vmtx._11, vmtx._21, vmtx._31);
-	Vector3 up(vmtx._12, vmtx._22, vmtx._32);
-
-	forward.Normalize();
-	right.Normalize();
-	up.Normalize();
-
-	Vector3 start(m_srt.pos.x, m_srt.pos.y, m_srt.pos.z);
-	Color col[3] = {
-		Color(1,0,0,1),
-		Color(0,1,0,1),
-		Color(0,1,1,1)
-	};
-
-	Vector3 direction[3] ={right,up,forward};
-
-	SetLineWidth(2);
-	for (int loopcnt = 0; loopcnt < 3; loopcnt++) {
-		LineDrawerDraw(100, 
-			start, 
-			direction[loopcnt], 
-			col[loopcnt]);
-	}
 
 	for (const auto& bullet : m_bullets)
 	{
