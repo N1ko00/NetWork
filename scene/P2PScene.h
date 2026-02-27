@@ -15,6 +15,8 @@
 #include "../system/CMaterial.h"
 #include "../system/CTexture.h"
 #include "../system/CShader.h"
+#include "../system/CStaticMesh.h"
+#include "../system/CStaticMeshRenderer.h"
 #include "../gameobject/field.h"
 #include "../gameobject/player.h"
 #include "../gameobject/enemy.h"
@@ -179,6 +181,10 @@ private:
 	float m_explosionSize = 40.0f;
 	float m_explosionLifeFrame = 20.0f;
 	float m_explosionYOffset = 10.0f;
+
+	CStaticMesh* m_skydomeMesh = nullptr;
+	CStaticMeshRenderer* m_skydomeRenderer = nullptr;
+	CShader* m_skydomeShader = nullptr;
 };
 
 REGISTER_CLASS(P2PScene)

@@ -159,6 +159,19 @@ void P2PScene::draw(uint64_t deltatime)
 {
 	m_camera->Draw();
 
+    if (m_skydomeShader && m_skydomeRenderer && m_camera) {
+        SRT skySrt{};
+        skySrt.pos = m_camera->GetPosition();
+        skySrt.scale = Vector3(1.0f, 1.0f, 1.0f);
+        skySrt.rot = Vector3(0.0f, 0.0f, 0.0f);
+
+        Matrix4x4 skyMtx = skySrt.GetMatrix();
+        Renderer::SetWorldMatrix(&skyMtx);
+        m_skydomeShader->SetGPU();
+        m_skydomeRenderer->Draw();
+    }
+
+
     m_objectmanager->DrawAll(deltatime);
     DrawExplosionEffects();
 }
@@ -254,6 +267,11 @@ void P2PScene::resourceLoader()
         MeshManager::RegisterMesh<CStaticMesh>("car001.x", std::move(mesh));
         MeshManager::RegisterMeshRenderer<CStaticMeshRenderer>("car001.x", std::move(renderer));
     }
+
+     loadStaticMesh("assets/model/skydome.x", "skydome.x", "assets/model/");
+     m_skydomeMesh = MeshManager::getMesh<CStaticMesh>("skydome.x");
+     m_skydomeRenderer = MeshManager::getRenderer<CStaticMeshRenderer>("skydome.x");
+     m_skydomeShader = MeshManager::getShader<CShader>("unlightshader");
 
 }
 
