@@ -168,8 +168,11 @@ void player::update(uint64_t dt) {
    // left click to shoot balls
    if (CDirectInput::GetInstance().GetMouseLButtonTrigger())
    {
-	   const Vector3 shotDir = GetMuzzleForwardXZ();
-	   SpawnLocalBullet(shotDir);
+	   Vector3 shotDir = forward;
+	   if (shotDir.LengthSquared() <= 1e-6f)
+	   {
+		   shotDir = GetMuzzleForwardXZ();
+	   }	   SpawnLocalBullet(shotDir);
    }
 
    for (auto& bullet : m_bullets)
