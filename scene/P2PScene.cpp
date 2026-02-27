@@ -163,6 +163,8 @@ void P2PScene::init()
 	// プレイヤ初期化
     m_player = m_objectmanager->CreateLocal<player>();
 
+    // 後から参加した端末にも自分の状態が渡るよう初期同期を送る
+    SendRegist();
 
     // カメラの設定
 	DebugUI::RedistDebugFunction([this]() {
@@ -252,6 +254,13 @@ void P2PScene::p2pnetworkstart()
         [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
         {
             BulletRegistHandler(std::move(msg), ip, port);
+        });
+
+    m_net->RegisterHandler(
+        MessageType::REGIST,
+        [this](std::unique_ptr<MsgData> msg, uint32_t ip, uint16_t port)
+        {
+            RegistHandler(std::move(msg), ip, port);
         });
 
     const std::array<std::string,3> filename={
@@ -398,6 +407,25 @@ void P2PScene::p2pnetworkupdate()
     m_player->ClearJustFiredBullets();
 }
 
+void P2PScene::SendRegist()
+{
+    if (!m_net || !m_player) {
+        return;
+    }
+
+    const SRT srt = m_player->getSRT();
+
+    MsgData msg{};
+    msg.Msg.Header.type = MessageType::REGIST;
+    msg.Msg.Header.ID = m_player->GetObjectId();
+    msg.Msg.Header.seqenceno = 0;
+    msg.Msg.registbody.pos = srt.pos;
+    msg.Msg.registbody.rotation = srt.rot;
+    msg.Msg.registbody.scale = srt.scale;
+
+    m_net->SendAll(msg);
+}
+
 void P2PScene::SendBulletRegist()
 {
     const auto& fired = m_player->GetJustFiredBullets();
@@ -478,9 +506,36 @@ bool P2PScene::HandleEnemyBulletPlayerCollision()
     return !removeIndices.empty();
 }
 
-/**
- * @brief eʒmM
- */
+void P2PScene::RegistHandler(
+    std::unique_ptr<MsgData> msg,
+    uint32_t ipadr,
+    uint16_t port)
+{
+    (void)ipadr;
+    (void)port;
+
+    SRT srt{};
+    srt.pos = msg->Msg.registbody.pos;
+    srt.rot = msg->Msg.registbody.rotation;
+    srt.scale = msg->Msg.registbody.scale;
+
+    auto obj = m_objectmanager->FindById(msg->Msg.Header.ID);
+    const bool isNewRemote = (obj == nullptr);
+    if (isNewRemote) {
+        obj = m_objectmanager->CreateRemoteWithId<enemy>(msg->Msg.Header.ID);
+    }
+
+    if (obj == nullptr) {
+        return;
+    }
+
+    obj->setSRT(srt);
+
+    if (isNewRemote) {
+        SendRegist();
+    }
+}
+
 void P2PScene::BulletRegistHandler(
     std::unique_ptr<MsgData> msg,
     uint32_t ipadr,

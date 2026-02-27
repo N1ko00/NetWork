@@ -92,7 +92,13 @@ public:
 		uint32_t ipadr,
 		uint16_t port);
 
-	// eM
+	void RegistHandler(
+		std::unique_ptr<MsgData> msg,
+		uint32_t ipadr,
+		uint16_t port);
+
+	// 
+	void SendRegist();
 	void SendBulletRegist();
 	void HandleBulletEnemyCollisions();
 	bool HandleEnemyBulletPlayerCollision();
