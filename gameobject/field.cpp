@@ -100,7 +100,7 @@ void field::init() {
 	m_Material.Create(mtrl);
 
 	// テクスチャロード
-	bool sts = m_Texture.Load(std::filesystem::path("assets/texture/Grass01.jpg"));
+	bool sts = m_Texture.Load(std::filesystem::path("assets/texture/field001.jpg"));
 	assert(sts == true);
 
 	m_srt.pos = Vector3(0, 0, 0);
