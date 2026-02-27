@@ -25,14 +25,15 @@ void player::init() {
 	m_srt.rot = Vector3(0, 0, PI);
 }
 
-void player::SpawnLocalBullet()
+void player::SpawnLocalBullet(const Vector3& shotDir)
 {
-	Vector3 shotDir(-std::sin(m_srt.rot.y), 0.0f, -std::cos(m_srt.rot.y));
-	shotDir.Normalize();
+	Vector3 normalized = shotDir;
+	if (normalized.LengthSquared() <= 1e-6f) return;
+	normalized.Normalize();
 
 	Bullet bullet{};
-	bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + shotDir * 20.0f;
-	bullet.vel = shotDir * 15.0f;
+	bullet.pos = m_srt.pos + Vector3(0.0f, 10.0f, 0.0f) + normalized * 20.0f;
+	bullet.vel = normalized * 15.0f;
 	bullet.life = 180.0f;
 	bullet.isLocal = true;
 
@@ -75,17 +76,23 @@ void player::update(uint64_t dt) {
 
    const Matrix4x4 vmtx = camera->GetViewMatrix();
 
-   Vector3 forward(vmtx._13, vmtx._23, vmtx._33);	// 進行方向
-   Vector3 right(vmtx._11, vmtx._21, vmtx._31);		// 右方向
-   Vector3 up(vmtx._12, vmtx._22, vmtx._32);		// 上方向
+   Vector3 cameraForward(vmtx._13, vmtx._23, vmtx._33);	// camera forward
+   Vector3 forward = cameraForward;						// move direction basis
+   Vector3 right(vmtx._11, vmtx._21, vmtx._31);		// right direction
+   Vector3 up(vmtx._12, vmtx._22, vmtx._32);		// up direction
+
+   if (cameraForward.LengthSquared() > 1e-6f)
+   {
+	   cameraForward.Normalize();
+   }
 
    // XZ平面上の移動
    forward.y = 0.0f;
    right.y = 0.0f;
 
-   forward.Normalize();
-   right.Normalize();
-   up.Normalize();
+   if (forward.LengthSquared() > 1e-6f) forward.Normalize();
+   if (right.LengthSquared() > 1e-6f) right.Normalize();
+   if (up.LengthSquared() > 1e-6f) up.Normalize();
 
    // 移動方向生成
 	// 入力（押してたら +1 / -1）
@@ -151,7 +158,7 @@ void player::update(uint64_t dt) {
    // left click to shoot balls
    if (CDirectInput::GetInstance().GetMouseLButtonTrigger())
    {
-	   SpawnLocalBullet();
+	   SpawnLocalBullet(cameraForward);
    }
 
    for (auto& bullet : m_bullets)

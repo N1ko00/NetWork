@@ -29,7 +29,7 @@ public:
 		bool isLocal = true;
 	};
 
-	void SpawnLocalBullet();
+	void SpawnLocalBullet(const Vector3& shotDir);
 	void SpawnNetworkBullet(const Vector3& pos, const Vector3& dir);
 	std::vector<Bullet>& GetBullets() { return m_bullets; }
 	const std::vector<Bullet>& GetBullets() const { return m_bullets; }
