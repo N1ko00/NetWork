@@ -254,128 +254,125 @@ void P2PScene::p2pnetworkstart()
             BulletRegistHandler(std::move(msg), ip, port);
         });
 
-    // 設定ファイル選択
-    std::cout << "Select pia1 or pia2 or pia3\n";
-    std::cout << " 0) pia1\n";
-    std::cout << " 1) pia2\n";
-    std::cout << " 2) pia3\n";
-
-    int selectno = 0;
-    if (!(std::cin >> selectno) || (selectno != 0 && selectno != 1 && selectno != 2)) {
-        std::cerr << "invalid selection.\n";
-        return;
-    }
-
-    const std::string filename[3] = {
+    const std::array<std::string,3> filename={
         "pia1/config.toml",
         "pia2/config.toml",
         "pia3/config.toml"
     };
 
-    // TOML 読み込み（例外対策）
-    toml::value config;
-    try {
-         config = toml::parse(filename[selectno]);
-    }
-    catch (const std::exception& e) {
-        std::cerr << "toml parse error: " << e.what() << "\n";
-        return;
-    }
+    struct PeerConfig {
+        std::string ip;
+        uint16_t port;
+    };
 
-    int myport_i = 0;
-    int machineid_i = 0;
-
-     // peers は複数になる
-     struct PeerConfig {
-         std::string ip;
-         uint16_t port;
-     };
-     std::vector<PeerConfig> peers;
-
-     try {
-         myport_i = toml::find<int>(config, "myport");
-         machineid_i = toml::find<int>(config, "machineID");
-
-         // [[peers]] ... の配列を取得（要素は table）
-         const auto peerValues = toml::find<std::vector<toml::value>>(config, "peers");
-
-         if (peerValues.empty()) {
-             std::cerr << "toml key error: peers is empty\n";
-             return;
-         }
-         if (peerValues.size() > 10) {
-             std::cerr << "toml key error: peers size over 10: " << peerValues.size() << "\n";
-             return;
-         }
-
-         peers.reserve(peerValues.size());
-         for (std::size_t i = 0; i < peerValues.size(); ++i) {
-             const auto& peer = peerValues[i];
-
-             // peer は table なので、そこから ip/port を読む
-             const std::string ip = toml::find<std::string>(peer, "ip");
-             const int port_i = toml::find<int>(peer, "port");
-
-             if (ip.empty()) {
-                    std::cerr << "toml key error: peers[" << i << "].ip is empty\n";
-                    return;
-             }
-
-             const auto port_u16 = ToPortU16(port_i);
-             if (!port_u16) {
-                 std::cerr << "port out of range: peers[" << i << "].port=" << port_i << "\n";
-                 return;
-             } 
-
-             peers.push_back(PeerConfig{ ip, *port_u16 });
-         }
-     }
-
-     catch (const std::exception& e) {
-
-            std::cerr << "toml key error: " << e.what() << "\n";
-            return;
-     }
-
-     // 通信相手の登録
-     std::string err;
-     for (const auto& p : peers) {
-         m_net->AddPeer(p.ip.c_str(), p.port,&err);
-     }
-
-     // myport 範囲チェック
-     const auto myport = ToPortU16(myport_i);
-     if (!myport) {
-        std::cerr << "port out of range. myport=" << myport_i << "\n";
-        return;
-     }
-
-     // 表示
-     std::cout << "myport:" << *myport << "\n";
-     std::cout << "machineID:" << machineid_i << "\n";
-
-     m_machineID = static_cast<uint64_t>(machineid_i);
-
-     for (std::size_t i = 0; i < peers.size(); ++i) {
-         std::cout << "peers[" << i << "].ip:" << peers[i].ip
-             << " port:" << peers[i].port << "\n";
-     }
-
-    // ネットワーク開始（失敗チェック）
-    const bool ok = m_net->Start(
-        *myport,
-        peers[0].ip.c_str(),
-        peers[0].port,
-        [](const std::string& e) {
-            // ここでUI/ログ（最低限 stderr に出す）
-            if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
+    for (std::size_t selectno = 0; selectno < filename.size(); ++selectno) {
+        // TOML 読み込み（例外対策）
+        toml::value config;
+        try {
+            config = toml::parse(filename[selectno]);
         }
-    );
+        catch (const std::exception& e) {
+            std::cerr << "toml parse error(" << filename[selectno] << "): " << e.what() << "\n";
+            continue;
+        }
 
-    if (!ok) {
-        std::cerr << "NetworkSystem::Start failed.\n";
+        int myport_i = 0;
+        int machineid_i = 0;
+        std::vector<PeerConfig> peers;
+
+        try {
+            myport_i = toml::find<int>(config, "myport");
+            machineid_i = toml::find<int>(config, "machineID");
+
+            // [[peers]] ... の配列を取得（要素は table）
+            const auto peerValues = toml::find<std::vector<toml::value>>(config, "peers");
+
+            if (peerValues.empty()) {
+                std::cerr << "toml key error(" << filename[selectno] << "): peers is empty\n";
+                continue;
+            }
+            if (peerValues.size() > 10) {
+                std::cerr << "toml key error(" << filename[selectno] << "): peers size over 10: " << peerValues.size() << "\n";
+                continue;
+            }
+
+            peers.reserve(peerValues.size());
+            for (std::size_t i = 0; i < peerValues.size(); ++i) {
+                const auto& peer = peerValues[i];
+
+                // peer は table なので、そこから ip/port を読む
+                const std::string ip = toml::find<std::string>(peer, "ip");
+                const int port_i = toml::find<int>(peer, "port");
+
+                if (ip.empty()) {
+                    std::cerr << "toml key error(" << filename[selectno] << "): peers[" << i << "].ip is empty\n";
+                    peers.clear();
+                    break;
+                }
+
+                const auto port_u16 = ToPortU16(port_i);
+                if (!port_u16) {
+                    std::cerr << "port out of range(" << filename[selectno] << "): peers[" << i << "].port=" << port_i << "\n";
+                    peers.clear();
+                    break;
+                }
+
+                peers.push_back(PeerConfig{ ip, *port_u16 });
+            }
+        }
+        catch (const std::exception& e) {
+            std::cerr << "toml key error(" << filename[selectno] << "): " << e.what() << "\n";
+            continue;
+        }
+
+        if (peers.empty()) {
+            continue;
+        }
+
+        // myport 範囲チェック
+        const auto myport = ToPortU16(myport_i);
+        if (!myport) {
+            std::cerr << "port out of range(" << filename[selectno] << "). myport=" << myport_i << "\n";
+            continue;
+        }
+
+        // 通信相手の登録
+        std::string err;
+        for (const auto& p : peers) {
+            m_net->AddPeer(p.ip.c_str(), p.port, &err);
+        }
+
+        // ネットワーク開始（失敗チェック）
+        const bool ok = m_net->Start(
+            *myport,
+            peers[0].ip.c_str(),
+            peers[0].port,
+            [](const std::string& e) {
+                if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
+            }
+        );
+
+        if (!ok) {
+            std::cerr << "NetworkSystem::Start failed for " << filename[selectno] << "\n";
+            m_net = std::make_unique<NetworkSystem>();
+            continue;
+        }
+
+        std::cout << "auto selected config: " << filename[selectno] << "\n";
+        std::cout << "myport:" << *myport << "\n";
+        std::cout << "machineID:" << machineid_i << "\n";
+
+        m_machineID = static_cast<uint64_t>(machineid_i);
+
+        for (std::size_t i = 0; i < peers.size(); ++i) {
+            std::cout << "peers[" << i << "].ip:" << peers[i].ip
+                << " port:" << peers[i].port << "\n";
+        }
+
         return;
     }
+
+    std::cerr << "No available pia config found (pia1 -> pia3 all unavailable).\n";
 }
 /**
  * @brief p2pネットワー更新処理
