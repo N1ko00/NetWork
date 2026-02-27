@@ -31,6 +31,7 @@ public:
 
 	void SpawnLocalBullet(const Vector3& shotDir);
 	void SpawnNetworkBullet(const Vector3& pos, const Vector3& dir);
+	Vector3 GetMuzzleForwardXZ() const;
 	std::vector<Bullet>& GetBullets() { return m_bullets; }
 	const std::vector<Bullet>& GetBullets() const { return m_bullets; }
 	void RemoveBulletAt(std::size_t index);

@@ -55,6 +55,16 @@ void player::SpawnNetworkBullet(const Vector3& pos, const Vector3& dir)
 	m_bullets.push_back(bullet);
 }
 
+Vector3 player::GetMuzzleForwardXZ() const
+{
+	Vector3 shotDir(-std::sin(m_srt.rot.y), 0.0f, -std::cos(m_srt.rot.y));
+	if (shotDir.LengthSquared() > 1e-6f)
+	{
+		shotDir.Normalize();
+	}
+	return shotDir;
+}
+
 void player::RemoveBulletAt(std::size_t index)
 {
 	if (index >= m_bullets.size()) return;
@@ -158,7 +168,8 @@ void player::update(uint64_t dt) {
    // left click to shoot balls
    if (CDirectInput::GetInstance().GetMouseLButtonTrigger())
    {
-	   SpawnLocalBullet(cameraForward);
+	   const Vector3 shotDir = GetMuzzleForwardXZ();
+	   SpawnLocalBullet(shotDir);
    }
 
    for (auto& bullet : m_bullets)
