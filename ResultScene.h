@@ -21,6 +21,8 @@ public:
 private:
     std::unique_ptr<CSprite> m_backgroundSprite;
     std::unique_ptr<CSprite> m_loseSprite;
+    std::unique_ptr<CSprite> m_returnTitleSprite;
+    std::unique_ptr<CSprite> m_exitSprite;
 };
 
 REGISTER_CLASS(ResultScene)
