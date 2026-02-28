@@ -149,7 +149,9 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="ResultScene.cpp" />
-    <ClCompile Include="scene\P2PScene.cpp" />
+    <ClCompile Include="scene\P2PScene.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="system\AssimpPerse.cpp" />
     <ClCompile Include="system\BoneCombMatrix.cpp" />
     <ClCompile Include="system\BoxDrawer.cpp" />
@@ -157,13 +159,17 @@
     <ClCompile Include="system\camera.cpp" />
     <ClCompile Include="system\CAnimationData.cpp" />
     <ClCompile Include="system\CAnimationMesh.cpp" />
-    <ClCompile Include="system\CAnimationMeshBlender.cpp" />
+    <ClCompile Include="system\CAnimationMeshBlender.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="system\CAnimationObject.cpp" />
     <ClCompile Include="system\CapsuleDrawer.cpp" />
     <ClCompile Include="system\CConeMesh.cpp" />
     <ClCompile Include="system\CCylinderMesh.cpp" />
     <ClCompile Include="system\CLineMesh.cpp" />
-    <ClCompile Include="system\collision.cpp" />
+    <ClCompile Include="system\collision.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="system\ConeDrawer.cpp" />
     <ClCompile Include="system\CPlane.cpp" />
     <ClCompile Include="system\CShader.cpp" />
@@ -196,11 +202,15 @@
     <ClCompile Include="utility\assimp\assimptexturearray.cpp" />
     <ClCompile Include="utility\assimp\SceneMaterialBinaryIO.cpp" />
     <ClCompile Include="utility\assimp\SceneMeshBinaryIO.cpp" />
-    <ClCompile Include="utility\assimp\ToMyMATERIAL.cpp" />
+    <ClCompile Include="utility\assimp\ToMyMATERIAL.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="utility\blobshadow.cpp" />
     <ClCompile Include="utility\EncodingConverter.cpp" />
     <ClCompile Include="utility\fileopendialog.cpp" />
-    <ClCompile Include="utility\FileReadUtf8.cpp" />
+    <ClCompile Include="utility\FileReadUtf8.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\generatemipmap.cpp" />
     <ClCompile Include="utility\particle.cpp" />
