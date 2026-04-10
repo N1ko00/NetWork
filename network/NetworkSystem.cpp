@@ -1,6 +1,16 @@
 #include "NetworkSystem.h"
 #include <cstring>   // std::memset
+#include <sstream>
 
+
+namespace {
+    static std::string PeerToString(const NetworkSystem::PeerEndpoint & p)
+    {
+    std::ostringstream oss;
+    oss << p.ip << ":" << p.port;
+    return oss.str();
+    }
+}
 //------------------------------------------------------------------------------
 // Start
 //  UDP 通信を開始し、受信スレッドを立ち上げる。
@@ -25,7 +35,7 @@ bool NetworkSystem::Start(uint16_t myPort, const char* yourIp, uint16_t yourPort
     // 1) ソケット生成などの初期化
     // 失敗したらネットワーク開始できないので Start 失敗として返す
     if (!m_udp->Open(&err)) {
-        if (m_onError) m_onError(err);
+        if (m_onError) m_onError("Start(Open) failed: " + err);
         return false;
     }
 
@@ -33,7 +43,7 @@ bool NetworkSystem::Start(uint16_t myPort, const char* yourIp, uint16_t yourPort
     // このポート(myPort)で UDP パケットを受け取る
     // ※bindしないと OS がどのポートで受けるか決まらず受信できない
     if (!m_udp->Bind(myPort, &err)) {
-        if (m_onError) m_onError(err);
+        if (m_onError) m_onError("Start(Bind myPort=" + std::to_string(myPort) + ") failed: " + err);
         return false;
     }
 
@@ -41,13 +51,17 @@ bool NetworkSystem::Start(uint16_t myPort, const char* yourIp, uint16_t yourPort
     // UDPCOM 内部に相手アドレスを保持させることで、
     // Send() のたびに sockaddr_in を作る必要がなくなる
     if (!m_udp->SetRemote(yourIp, yourPort, &err)) {
-        if (m_onError) m_onError(err);
+        if (m_onError) {
+            m_onError("Start(SetRemote ip=" + std::string(yourIp ? yourIp : "(null)")
+                 +" port=" + std::to_string(yourPort) + ") failed: " + err);
+        } 
         return false;
     }
 
     // 4) （任意）ブロードキャスト送信を使うなら有効化
     // ※使わないなら不要。失敗しても致命ではない場合が多い
     m_udp->SetBroadcast(true, &err);
+    if (!err.empty() && m_onError) m_onError("Start(SetBroadcast) warning: " + err);
 
     // 5) UDP connreset 無効化（Windowsでよくある落ち対策）
     // - 相手側が存在しない/ポートが閉じている等で ICMP が返ると、
@@ -63,7 +77,7 @@ bool NetworkSystem::Start(uint16_t myPort, const char* yourIp, uint16_t yourPort
     // - non-blocking なら「データが無いとき」WSAEWOULDBLOCK になり、
     //   ループ内で m_running を見ながら安全に抜けられる
     if (!m_udp->SetNonBlocking(true, &err)) {
-        if (m_onError) m_onError(err);
+        if (m_onError) m_onError("Start(SetNonBlocking) failed: " + err);
         return false;
     }
 
@@ -71,6 +85,9 @@ bool NetworkSystem::Start(uint16_t myPort, const char* yourIp, uint16_t yourPort
     // m_running を true にしてから thread を起動する（順序が大事）
     m_running = true;
     m_thread = std::thread(&NetworkSystem::RecvLoopWithoutbusy, this);
+    if (m_onError) {
+        m_onError("Start success: local UDP port=" + std::to_string(myPort) + ", default remote=" + std::string(yourIp ? yourIp : "(null)") + ":" + std::to_string(yourPort));
+    }
 
     return true;
 }
@@ -132,8 +149,11 @@ void NetworkSystem::RegisterHandler(
 bool NetworkSystem::Send(const MsgData& msg)
 {
     // Start前/Stop後なら送れない
-    if (!m_udp) return false;
-
+    if (!m_udp) {
+        if (m_onError) m_onError("Send failed: UDP is not started");
+        return false;
+    }
+    
     std::string err;
 
     // MsgData をそのまま送信
@@ -156,7 +176,10 @@ bool NetworkSystem::Send(const MsgData& msg)
 //------------------------------------------------------------------------------
 bool NetworkSystem::SendAll(const MsgData& msg)
 {
-    if (!m_udp) return false;
+    if (!m_udp) {
+        if (m_onError) m_onError("SendAll failed: UDP is not started");
+        return false;
+    }
 
     if (m_peers.empty()) {
         if (m_onError) m_onError("SendAll: peer list is empty");
@@ -176,10 +199,10 @@ bool NetworkSystem::SendAll(const MsgData& msg)
             anyFailure = true;
             if (m_onError) {
                 if (!err.empty()) {
-                    m_onError("SendAll: SendTo failed peers[" + std::to_string(i) + "]: " + err);
+                    m_onError("SendAll: SendTo failed peers[" + std::to_string(i) + "] " + PeerToString(m_peers[i]) + ": " + err);
                 }
                 else {
-                    m_onError("SendAll: SendTo failed peers[" + std::to_string(i) + "]");
+                    m_onError("SendAll: SendTo failed peers[" + std::to_string(i) + "] " + PeerToString(m_peers[i]));
                 }
             }
             continue; // 残りへ
@@ -426,8 +449,7 @@ bool NetworkSystem::ResolvePeerAddress(PeerEndpoint& peer, std::string* outErr)
 bool NetworkSystem::AddPeer(const std::string& ip, uint16_t port, std::string* outErr)
 {
     if (m_peers.size() >= 10) {
-        if (outErr) *outErr = "too many peers (max 10)";
-        return false;
+        if (outErr) *outErr = "too many peers (max 10): request=" + ip + ":" + std::to_string(port);        return false;
     }
 
     PeerEndpoint p;
@@ -437,8 +459,7 @@ bool NetworkSystem::AddPeer(const std::string& ip, uint16_t port, std::string* o
     // ここで変換
     std::string err;
     if (!ResolvePeerAddress(p, &err)) {
-        if (outErr) *outErr = "AddPeer: " + err;
-        return false;
+        if (outErr) *outErr = "AddPeer(" + ip + ":" + std::to_string(port) + "): " + err;        return false;
     }
 
     // 変換できたものだけ登録

@@ -1,5 +1,11 @@
 # config.toml
 
+# Stage1 manual internet verification:
+# - peers.ip can be private LAN IP OR global IPv4.
+# - for internet test, receiver side needs router UDP port-forward + Windows Firewall allow rule.
+# - no NAT traversal/STUN/TURN/hole punching in this stage.
+# Example global IP: "203.0.113.11"
+
 myport = 49153
 machineID = 103
 

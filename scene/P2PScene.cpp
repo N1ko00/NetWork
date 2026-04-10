@@ -343,7 +343,9 @@ void P2PScene::p2pnetworkstart()
             config = toml::parse(filename[selectno]);
         }
         catch (const std::exception& e) {
-            std::cerr << "toml parse error(" << filename[selectno] << "): " << e.what() << "\n";
+            std::cerr << "[P2P][ConfigError] parse failed: " << filename[selectno]   
+                << " reason=" << e.what() << "\n"
+                << "  -> check file path/encoding/TOML syntax.\n";
             continue;
         }
 
@@ -359,11 +361,11 @@ void P2PScene::p2pnetworkstart()
             const auto peerValues = toml::find<std::vector<toml::value>>(config, "peers");
 
             if (peerValues.empty()) {
-                std::cerr << "toml key error(" << filename[selectno] << "): peers is empty\n";
+                std::cerr << "[P2P][ConfigError] " << filename[selectno] << ": peers is empty\n";
                 continue;
             }
             if (peerValues.size() > 10) {
-                std::cerr << "toml key error(" << filename[selectno] << "): peers size over 10: " << peerValues.size() << "\n";
+                std::cerr << "[P2P][ConfigError] " << filename[selectno] << ": peers size over 10: " << peerValues.size() << "\n";
                 continue;
             }
 
@@ -376,14 +378,14 @@ void P2PScene::p2pnetworkstart()
                 const int port_i = toml::find<int>(peer, "port");
 
                 if (ip.empty()) {
-                    std::cerr << "toml key error(" << filename[selectno] << "): peers[" << i << "].ip is empty\n";
+                    std::cerr << "[P2P][ConfigError] " << filename[selectno] << ": peers[" << i << "].ip is empty\n";
                     peers.clear();
                     break;
                 }
 
                 const auto port_u16 = ToPortU16(port_i);
                 if (!port_u16) {
-                    std::cerr << "port out of range(" << filename[selectno] << "): peers[" << i << "].port=" << port_i << "\n";
+                    std::cerr << "[P2P][ConfigError] " << filename[selectno] << ": peers[" << i << "].port out of range: " << port_i << "\n";
                     peers.clear();
                     break;
                 }
@@ -392,7 +394,8 @@ void P2PScene::p2pnetworkstart()
             }
         }
         catch (const std::exception& e) {
-            std::cerr << "toml key error(" << filename[selectno] << "): " << e.what() << "\n";
+            std::cerr << "[P2P][ConfigError] key read failed: " << filename[selectno]
+                << " reason=" << e.what() << "\n"; 
             continue;
         }
 
@@ -403,7 +406,7 @@ void P2PScene::p2pnetworkstart()
         // myport 範囲チェック
         const auto myport = ToPortU16(myport_i);
         if (!myport) {
-            std::cerr << "port out of range(" << filename[selectno] << "). myport=" << myport_i << "\n";
+            std::cerr << "[P2P][ConfigError] " << filename[selectno] << ": myport out of range: " << myport_i << "\n";
             continue;
         }
 
@@ -412,44 +415,74 @@ void P2PScene::p2pnetworkstart()
 
         // 通信相手の登録
         std::string err;
+
+        bool addPeerFailed = false;
         for (const auto& p : peers) {
-            trialNet->AddPeer(p.ip.c_str(), p.port, &err);
+            err.clear();
+            if (!trialNet->AddPeer(p.ip.c_str(), p.port, &err)) {
+                std::cerr << "[P2P][NetworkError] AddPeer failed: ip=" << p.ip
+                     << " port=" << p.port
+                     << " file=" << filename[selectno]
+                     << " reason=" << err << "\n";
+                addPeerFailed = true;
+                break;
+                
+            }
+             std::cout << "[P2P] AddPeer ok: ip=" << p.ip << " port=" << p.port << "\n";
+            
         }
+         if (addPeerFailed) {
+            continue;
+            
+        }
+         std::cout << "[P2P] Start try: file=" << filename[selectno] << " myport=" << *myport
+             << " primaryRemote=" << peers[0].ip << ":" << peers[0].port << "\n";
 
         // ネットワーク開始（失敗チェック）
         const bool ok = trialNet->Start(
             *myport,
             peers[0].ip.c_str(),
             peers[0].port,
-            [](const std::string& e) {
-                if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
+            [selectno, &filename](const std::string& e) {
+                if (!e.empty()) {
+                    std::cerr << "[P2P][NetError][" << filename[selectno] << "] " << e << "\n";
+                    
+                }
             }
         );
 
         if (!ok) {
-            std::cerr << "NetworkSystem::Start failed for " << filename[selectno] << "\n";
-          
+            std::cerr << "[P2P][NetworkError] NetworkSystem::Start failed: file=" << filename[selectno]
+                 << " myport=" << *myport
+                 << " primaryRemote=" << peers[0].ip << ":" << peers[0].port << "\n";
             continue;
         }
 
         m_net = std::move(trialNet);
 
-        std::cout << "auto selected config: " << filename[selectno] << "\n";
-        std::cout << "myport:" << *myport << "\n";
-        std::cout << "machineID:" << machineid_i << "\n";
+        std::cout << "[P2P] auto selected config: " << filename[selectno] << "\n";
+        std::cout << "[P2P] myport: " << *myport << "\n";
+        std::cout << "[P2P] machineID: " << machineid_i << "\n";
 
         m_machineID = static_cast<uint64_t>(machineid_i);
 
         for (std::size_t i = 0; i < peers.size(); ++i) {
-            std::cout << "peers[" << i << "].ip:" << peers[i].ip
-                << " port:" << peers[i].port << "\n";
+            std::cout << "[P2P] peers[" << i << "] ip=" << peers[i].ip
+                << " port=" << peers[i].port << "\n";
         }
+
+        std::cout
+             << "[P2P] NOTE: Internet test requires BOTH sides:\n"
+             << "  1) UDP port forward/NAT rule on router for myport\n"
+             << "  2) Windows Firewall inbound allow rule for this app + UDP port\n"
+             << "  3) peer uses your global IPv4 + forwarded UDP port\n";
+        std::cout << "[P2P] Ready. Initial REGIST/POSITIONINFO will be sent via SendAll().\n";
 
         return;
     }
 
-    std::cerr << "No available pia config found (pia1 -> pia3 all unavailable).\n";
-}
+    std::cerr << "[P2P][Fatal] No available pia config found (pia1 -> pia3 all unavailable).\n";
+ }
 /**
  * @brief p2pネットワー更新処理
  */
