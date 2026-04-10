@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <string>
 #include <algorithm>
 #include "P2PScene.h"
 #include "../system/DebugUI.h"
@@ -24,6 +25,20 @@ namespace {
         if (p < 0 || p > 65535) return std::nullopt;
         return static_cast<uint16_t>(p);
     }
+
+    //------------------------------------------------------------------------------
+    // Stage2: 実行時接続先上書き（config.toml 非必須）
+    //------------------------------------------------------------------------------
+    struct RuntimeEndpointOverride
+     {
+    bool enable = true;                 // falseなら従来通りconfig.toml
+    int myport = 50000;                 // 自分の受信ポート
+    std::string peerIp = "127.0.0.1";   // 接続先IP
+    int peerPort = 50001;               // 接続先ポート
+    uint64_t machineId = 9001;          // config未使用時の一時ID
+    };
+    
+    RuntimeEndpointOverride g_runtimeEndpoint{};
 }
 
 /**
@@ -320,6 +335,53 @@ void P2PScene::p2pnetworkstart()
                 ExplosionStartHandler(std::move(msg), ip, port);
             });
     };
+
+    // Stage2: 実行時指定（成功したらそのまま採用）
+    if (g_runtimeEndpoint.enable) {
+        const auto myport = ToPortU16(g_runtimeEndpoint.myport);
+        const auto peerPort = ToPortU16(g_runtimeEndpoint.peerPort);
+        
+            if (!myport || !peerPort || g_runtimeEndpoint.peerIp.empty()) {
+            std::cerr << "[P2P] runtime endpoint invalid. "
+                 << "myport=" << g_runtimeEndpoint.myport
+                 << " peer=" << g_runtimeEndpoint.peerIp << ":" << g_runtimeEndpoint.peerPort
+                 << "\n";
+        }
+            else {
+            auto trialNet = std::make_unique<NetworkSystem>();
+            registerHandlers(*trialNet);
+            
+            std::string err;
+            if (!trialNet->AddPeer(g_runtimeEndpoint.peerIp, *peerPort, &err)) {
+                std::cerr << "[P2P] AddPeer failed(runtime): " << err << "\n";
+            }
+            else {
+                const bool ok = trialNet->Start(
+                    *myport,
+                    g_runtimeEndpoint.peerIp.c_str(),
+                    *peerPort,
+                    [](const std::string& e) {
+                        if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
+                    }
+                );
+                
+                if (ok) {
+                    m_net = std::move(trialNet);
+                    m_machineID = g_runtimeEndpoint.machineId;
+                    
+                    std::cout << "[P2P] runtime endpoint override enabled.\n";
+                    std::cout << "[P2P] myport:" << *myport << "\n";
+                    std::cout << "[P2P] peer[0].ip:" << g_runtimeEndpoint.peerIp
+                         << " port:" << *peerPort << "\n";
+                    std::cout << "[P2P] machineID:" << m_machineID << "\n";
+                    std::cout << "[P2P] (Stage1) Manual IP/Port verification mode. No NAT traversal/STUN/TURN.\n";
+                    return;
+                    }
+                std::cerr << "[P2P] NetworkSystem::Start failed(runtime override).\n";   
+            }
+        }
+        std::cerr << "[P2P] fallback to config.toml auto select.\n"; 
+    }
 
     const std::array<std::string,3> filename={
         "pia1/config.toml",
