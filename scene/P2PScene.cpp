@@ -327,6 +327,10 @@ void P2PScene::p2pnetworkstart()
         "pia3/config.toml"
     };
 
+    std::cout<<"[P2P] config auto select: pia1 -> pia3\n"
+        <<"[P2P] peer ip supports both private LAN IP and global IPv4.\n"
+        << "[P2P] (Stage1) Manual IP/Port verification mode. No NAT traversal/STUN/TURN.\n";
+
     struct PeerConfig {
         std::string ip;
         uint16_t port;
