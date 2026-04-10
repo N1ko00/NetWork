@@ -11,7 +11,6 @@ private:
     static constexpr uint64_t epoch = 1609459200000ULL; // 2021-01-01 00:00:00 UTC
     static constexpr uint64_t machine_bits = 10;        // マシン ID のビット数
     static constexpr uint64_t sequence_bits = 12;       // シーケンス番号のビット数
-    static constexpr uint64_t max_machine_id = (1ULL << machine_bits) - 1;
     static constexpr uint64_t max_sequence = (1ULL << sequence_bits) - 1;
 
     uint64_t machine_id;
@@ -28,11 +27,13 @@ private:
         );
     }
 public:
+    static constexpr uint64_t kMaxMachineId = (1ULL << machine_bits) - 1;
+
     Snowflake() = delete;
 
     // コンストラクタ: マシン ID を指定
     explicit Snowflake(uint64_t machine_id) : machine_id(machine_id), last_timestamp(0), sequence(0) {
-        if (machine_id > max_machine_id) {
+        if (machine_id > kMaxMachineId) {
             throw std::runtime_error("Machine ID is out of range");
         }
     }

@@ -15,6 +15,7 @@
 #include "../system/CMaterial.h"
 #include "../system/scenemanager.h"
 #include "../system/CDirectInput.h"
+#include "../gameobject/SnowFlakeID.h"
 
 namespace {
     //------------------------------------------------------------------------------
@@ -35,10 +36,11 @@ namespace {
     int myport = 50000;                 // 自分の受信ポート
     std::string peerIp = "127.0.0.1";   // 接続先IP
     int peerPort = 50001;               // 接続先ポート
-    uint64_t machineId = 9001;          // config未使用時の一時ID
+    uint64_t machineId = 101;          // config未使用時の一時ID
     };
     
-    RuntimeEndpointOverride g_runtimeEndpoint{};
+    RuntimeEndpointOverride g_runtimeEndpoint{
+    true,50001,"127.0.0.1",50000,2};
 }
 
 /**
@@ -366,18 +368,27 @@ void P2PScene::p2pnetworkstart()
                 );
                 
                 if (ok) {
-                    m_net = std::move(trialNet);
-                    m_machineID = g_runtimeEndpoint.machineId;
-                    
-                    std::cout << "[P2P] runtime endpoint override enabled.\n";
-                    std::cout << "[P2P] myport:" << *myport << "\n";
-                    std::cout << "[P2P] peer[0].ip:" << g_runtimeEndpoint.peerIp
-                         << " port:" << *peerPort << "\n";
-                    std::cout << "[P2P] machineID:" << m_machineID << "\n";
-                    std::cout << "[P2P] (Stage1) Manual IP/Port verification mode. No NAT traversal/STUN/TURN.\n";
-                    return;
+                    if (g_runtimeEndpoint.machineId > Snowflake::kMaxMachineId) {
+                        std::cerr << "[P2P][ConfigError] runtime machineId out of range: "
+                            << g_runtimeEndpoint.machineId
+                            << " (許容範囲 0.." << Snowflake::kMaxMachineId << ")\n";
                     }
-                std::cerr << "[P2P] NetworkSystem::Start failed(runtime override).\n";   
+                    else {
+                        m_net = std::move(trialNet);
+                        m_machineID = g_runtimeEndpoint.machineId;
+
+                        std::cout << "[P2P] runtime endpoint override enabled.\n";
+                        std::cout << "[P2P] myport:" << *myport << "\n";
+                        std::cout << "[P2P] peer[0].ip:" << g_runtimeEndpoint.peerIp
+                            << " port:" << *peerPort << "\n";
+                        std::cout << "[P2P] machineID:" << m_machineID << "\n";
+                        std::cout << "[P2P] (Stage1) Manual IP/Port verification mode. No NAT traversal/STUN/TURN.\n";
+                        return;
+                    }
+                }
+                else {
+                    std::cerr << "[P2P] NetworkSystem::Start failed(runtime override).\n";
+                }
             }
         }
         std::cerr << "[P2P] fallback to config.toml auto select.\n"; 
@@ -462,6 +473,13 @@ void P2PScene::p2pnetworkstart()
         }
 
         if (peers.empty()) {
+            continue;
+        }
+
+        if (machineid_i < 0 || static_cast<uint64_t>(machineid_i) > Snowflake::kMaxMachineId) {
+            std::cerr << "[P2P][ConfigError] " << filename[selectno]
+                << ": machineID out of range: " << machineid_i
+                << " (許容範囲 0.." << Snowflake::kMaxMachineId << ")\n";
             continue;
         }
 
