@@ -32,7 +32,7 @@
 *.out
 *.app
 
-# Visual StudioŠÖ˜Aƒtƒ@ƒCƒ‹
+# Visual Studioï¿½Ö˜Aï¿½tï¿½@ï¿½Cï¿½ï¿½
 .vscode/
 #*vcxproj*
 #*.sln
@@ -44,10 +44,11 @@
 *.log
 *.ipch
 
-#ƒrƒ‹ƒh¶¬ƒtƒ@ƒCƒ‹
+#ï¿½rï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½
 Debug/
 Release/
 x64/
 Win32/
+*.vs
 
 *.GM31MTRL
