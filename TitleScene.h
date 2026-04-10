@@ -5,6 +5,8 @@
 #include "system/CSprite.h"
 
 #include <memory>
+#include <array>
+#include "ConnectionSettings.h"
 
 class TitleScene : public IScene {
 public:
@@ -22,6 +24,12 @@ private:
     std::unique_ptr<CSprite> m_backgroundSprite;
     std::unique_ptr<CSprite> m_startSprite;
     std::unique_ptr<CSprite> m_exitSprite;
+
+    int m_myPortInput = 50001;
+    int m_remotePortInput = 50000;
+    std::array<char, 64> m_remoteIpInput{};
+    
+    bool ApplyAndGoToP2PScene();
 };
 
 REGISTER_CLASS(TitleScene)

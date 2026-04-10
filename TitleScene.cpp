@@ -3,6 +3,28 @@
 #include "Application.h"
 #include "system/CDirectInput.h"
 #include "system/scenemanager.h"
+#include "system/imgui/imgui.h"
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+
+namespace {
+    bool IsValidPort(int p) { return p >= 0 && p <= 65535; }
+}
+
+bool TitleScene::ApplyAndGoToP2PScene()
+{
+    if (!IsValidPort(m_myPortInput) || !IsValidPort(m_remotePortInput)) return false;
+    if (m_remoteIpInput[0] == '\0') return false;
+    
+    auto & s = ConnectionSettingsStore::Mutable();
+    s.enabled = true;
+    s.myPort = m_myPortInput;
+    s.remotePort = m_remotePortInput;
+    s.remoteIp = m_remoteIpInput.data();
+    SceneManager::SetCurrentScene("P2PScene");
+    return true;
+}
 
 void TitleScene::update(uint64_t delta)
 {
@@ -16,8 +38,15 @@ void TitleScene::update(uint64_t delta)
     const float exitButtonX = screenWidth * 0.32f;
     const float startButtonX = screenWidth * 0.68f;
 
+    ImGui::Begin("P2P Connection Setup");
+    ImGui::InputInt("My Port", &m_myPortInput);
+    ImGui::InputText("Remote IP", m_remoteIpInput.data(), static_cast<int>(m_remoteIpInput.size()));
+    ImGui::InputInt("Remote Port", &m_remotePortInput);
+    ImGui::Text("Current: myport=%d remote=%s:%d", m_myPortInput, m_remoteIpInput.data(), m_remotePortInput);
+    ImGui::End();
+    
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN)) {
-        SceneManager::SetCurrentScene("P2PScene");
+        ApplyAndGoToP2PScene();
     }
 
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_ESCAPE)) {
@@ -38,7 +67,7 @@ void TitleScene::update(uint64_t delta)
         };
 
         if (isInsideButton(startButtonX, buttonY)) {
-            SceneManager::SetCurrentScene("P2PScene");
+            ApplyAndGoToP2PScene();
             return;
         }
 
@@ -100,6 +129,16 @@ void TitleScene::init()
         buttonWidth,
         buttonHeight,
         "assets/texture/start.png");
+
+    const auto& s = ConnectionSettingsStore::Get();
+    m_myPortInput = s.myPort;
+    m_remotePortInput = s.remotePort;
+    std::fill(m_remoteIpInput.begin(), m_remoteIpInput.end(), '\0');
+    strncpy_s(
+        m_remoteIpInput.data(),
+        m_remoteIpInput.size(),
+        s.remoteIp.c_str(),
+        _TRUNCATE);
 }
 
 void TitleScene::dispose()

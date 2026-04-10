@@ -1,7 +1,9 @@
 ﻿#include <iostream>
 #include <string>
 #include <algorithm>
+#include <optional>
 #include "P2PScene.h"
+#include "../ConnectionSettings.h"
 #include "../system/DebugUI.h"
 #include "../system/meshmanager.h"
 #include "../network/toml.hpp"
@@ -26,21 +28,6 @@ namespace {
         if (p < 0 || p > 65535) return std::nullopt;
         return static_cast<uint16_t>(p);
     }
-
-    //------------------------------------------------------------------------------
-    // Stage2: 実行時接続先上書き（config.toml 非必須）
-    //------------------------------------------------------------------------------
-    struct RuntimeEndpointOverride
-     {
-    bool enable = true;                 // falseなら従来通りconfig.toml
-    int myport = 50000;                 // 自分の受信ポート
-    std::string peerIp = "127.0.0.1";   // 接続先IP
-    int peerPort = 50001;               // 接続先ポート
-    uint64_t machineId = 101;          // config未使用時の一時ID
-    };
-    
-    RuntimeEndpointOverride g_runtimeEndpoint{
-    true,50001,"127.0.0.1",50000,2};
 }
 
 /**
@@ -339,48 +326,42 @@ void P2PScene::p2pnetworkstart()
     };
 
     // Stage2: 実行時指定（成功したらそのまま採用）
-    if (g_runtimeEndpoint.enable) {
-        const auto myport = ToPortU16(g_runtimeEndpoint.myport);
-        const auto peerPort = ToPortU16(g_runtimeEndpoint.peerPort);
-        
-            if (!myport || !peerPort || g_runtimeEndpoint.peerIp.empty()) {
+    const auto& runtimeSettings = ConnectionSettingsStore::Get();
+    if (runtimeSettings.enabled) {
+        const auto myport = ToPortU16(runtimeSettings.myPort);
+        const auto peerPort = ToPortU16(runtimeSettings.remotePort);
+            if (!myport || !peerPort || runtimeSettings.remoteIp.empty()) {
             std::cerr << "[P2P] runtime endpoint invalid. "
-                 << "myport=" << g_runtimeEndpoint.myport
-                 << " peer=" << g_runtimeEndpoint.peerIp << ":" << g_runtimeEndpoint.peerPort
                  << "\n";
-        }
+            }
             else {
             auto trialNet = std::make_unique<NetworkSystem>();
             registerHandlers(*trialNet);
             
             std::string err;
-            if (!trialNet->AddPeer(g_runtimeEndpoint.peerIp, *peerPort, &err)) {
+            if (!trialNet->AddPeer(runtimeSettings.remoteIp, *peerPort, &err)) {
                 std::cerr << "[P2P] AddPeer failed(runtime): " << err << "\n";
             }
             else {
                 const bool ok = trialNet->Start(
                     *myport,
-                    g_runtimeEndpoint.peerIp.c_str(),
-                    *peerPort,
+                    runtimeSettings.remoteIp.c_str(), *peerPort,
                     [](const std::string& e) {
                         if (!e.empty()) std::cerr << "[NetError] " << e << "\n";
                     }
                 );
                 
                 if (ok) {
-                    if (g_runtimeEndpoint.machineId > Snowflake::kMaxMachineId) {
+                    if (runtimeSettings.machineId > Snowflake::kMaxMachineId) {
                         std::cerr << "[P2P][ConfigError] runtime machineId out of range: "
-                            << g_runtimeEndpoint.machineId
+                            << runtimeSettings.machineId
                             << " (許容範囲 0.." << Snowflake::kMaxMachineId << ")\n";
                     }
                     else {
                         m_net = std::move(trialNet);
-                        m_machineID = g_runtimeEndpoint.machineId;
-
+                        m_machineID = runtimeSettings.machineId;
                         std::cout << "[P2P] runtime endpoint override enabled.\n";
                         std::cout << "[P2P] myport:" << *myport << "\n";
-                        std::cout << "[P2P] peer[0].ip:" << g_runtimeEndpoint.peerIp
-                            << " port:" << *peerPort << "\n";
                         std::cout << "[P2P] machineID:" << m_machineID << "\n";
                         std::cout << "[P2P] (Stage1) Manual IP/Port verification mode. No NAT traversal/STUN/TURN.\n";
                         return;

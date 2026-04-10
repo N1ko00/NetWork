@@ -221,6 +221,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="ConnectionSettings.h" />
     <ClInclude Include="fpscontrol.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="gameobject\aim.h" />

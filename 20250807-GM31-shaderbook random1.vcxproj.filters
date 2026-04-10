@@ -530,6 +530,9 @@
     <ClInclude Include="TitleScene.h">
       <Filter>ソース ファイル\scene</Filter>
     </ClInclude>
+    <ClInclude Include="ConnectionSettings.h">
+      <Filter>ソース ファイル\scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\common.hlsl">
