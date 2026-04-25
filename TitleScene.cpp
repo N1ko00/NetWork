@@ -38,12 +38,6 @@ void TitleScene::update(uint64_t delta)
     const float exitButtonX = screenWidth * 0.32f;
     const float startButtonX = screenWidth * 0.68f;
 
-    ImGui::Begin("P2P Connection Setup");
-    ImGui::InputInt("My Port", &m_myPortInput);
-    ImGui::InputText("Remote IP", m_remoteIpInput.data(), static_cast<int>(m_remoteIpInput.size()));
-    ImGui::InputInt("Remote Port", &m_remotePortInput);
-    ImGui::Text("Current: myport=%d remote=%s:%d", m_myPortInput, m_remoteIpInput.data(), m_remotePortInput);
-    ImGui::End();
     
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN)) {
         ApplyAndGoToP2PScene();
@@ -108,6 +102,14 @@ void TitleScene::draw(uint64_t delta)
             Vector3(0.0f, 0.0f, 0.0f),
             Vector3(startButtonX,buttonY, 0.0f));
     }
+
+    ImGui::Begin("P2P Connection Setup");
+    ImGui::InputInt("My Port", &m_myPortInput);
+    ImGui::InputText("Remote IP", m_remoteIpInput.data(), static_cast<int>(m_remoteIpInput.size()));
+    ImGui::InputInt("Remote Port", &m_remotePortInput);
+    ImGui::Text("Current: myport=%d remote=%s:%d", m_myPortInput, m_remoteIpInput.data(), m_remotePortInput);
+    ImGui::End();
+
 }
 
 void TitleScene::init()
