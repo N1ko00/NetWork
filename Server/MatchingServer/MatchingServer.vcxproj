@@ -129,10 +129,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MatchingServer.cpp" />
+    <ClCompile Include="matching_server.cpp" />
     <ClCompile Include="roomStore.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="matching_server.h" />
     <ClInclude Include="room_store.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
