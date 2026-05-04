@@ -2,6 +2,7 @@
 
 #include "room_store.h"
 
+#include <winsock2.h>
 #include <chrono>
 #include <cstring>
 #include <string>
@@ -42,6 +43,6 @@ private:
 	static std::string StatusText(int statusCode);  // HTTPステータスコードからステータステキストを取得する
 
 	uint16_t m_listenPort;
-	int m_listenSock = -1;
+	SOCKET m_listenSock = INVALID_SOCKET;
 	RoomStore m_store;
 };

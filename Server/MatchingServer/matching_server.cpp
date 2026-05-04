@@ -2,7 +2,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <winsock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
 
@@ -66,29 +65,35 @@ bool MatchingServer::InitSocket() {
 		return false;
 	}
 
+	m_listenSock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);  // TCPソケットを作成する;
+	if (m_listenSock == INVALID_SOCKET) {
+		std::cerr << "[MatchingServer] socket failed. err=" << WSAGetLastError() << std::endl;
+		return false;
+	}
+
 	sockaddr_in addr{};  // ソケットアドレス構造体をゼロクリアする
 	addr.sin_family = AF_INET;  // IPv4を使用する
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);  // すべてのインターフェースで接続を受け付けるためにINADDR_ANYを使用する
 	addr.sin_port = htons(m_listenPort);  // ポート番号をネットワークバイトオーダーに変換する
 
 	// ソケットを作成する
-	if (::bind(static_cast<SOCKET>(m_listenSock), reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR) {
-		std::cerr<<"[MatchingServer] bind Failed."<<std::endl;
+	if (::bind(m_listenSock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR) {
+		std::cerr<<"[MatchingServer] bind Failed. err=" << WSAGetLastError() <<std::endl;
 		return false;
 	}
 
 	// ソケットをリッスン状態にする
-	if (::listen(static_cast<SOCKET>(m_listenSock), SOMAXCONN) == SOCKET_ERROR) {
-		std::cerr << "[MatchingServer] listen Failed." << std::endl;
+	if (::listen(m_listenSock, SOMAXCONN) == SOCKET_ERROR) {
+		std::cerr << "[MatchingServer] listen Failed. err=" << WSAGetLastError() << std::endl;
 		return false;
 	}
 	return true;
 }
 
 void MatchingServer::CloseSocket() {
-	if (m_listenSock >= 0) {
-		closesocket(static_cast<SOCKET>(m_listenSock));  // ソケットを閉じる
-		m_listenSock = -1;
+	if (m_listenSock != INVALID_SOCKET) {
+		closesocket(m_listenSock);  // ソケットを閉じる
+		m_listenSock = INVALID_SOCKET;
 	}
 	WSACleanup();  // Winsockのクリーンアップ
 }
@@ -98,7 +103,7 @@ bool MatchingServer::HandleOneClient() {
 	int len = sizeof(clientAddr);  // クライアントのソケットアドレス構造体のサイズを設定する
 
 	// クライアントからの接続を受け入れる
-	SOCKET client = ::accept(static_cast<SOCKET>(m_listenSock), reinterpret_cast<sockaddr*>(&clientAddr), &len);  // クライアントからの接続を受け入れる
+	SOCKET client = ::accept(m_listenSock, reinterpret_cast<sockaddr*>(&clientAddr), &len);  // クライアントからの接続を受け入れる
 	if (client == INVALID_SOCKET) {
 		return false;
 	}
