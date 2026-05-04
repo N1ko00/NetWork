@@ -144,6 +144,7 @@
     <ClCompile Include="gameobject\player.cpp" />
     <ClCompile Include="gameobject\tower.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="matching\MatchingClient.cpp" />
     <ClCompile Include="network\NetworkSystem.cpp" />
     <ClCompile Include="network\udpcom.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -233,6 +234,7 @@
     <ClInclude Include="gameobject\SnowFlakeID.h" />
     <ClInclude Include="gameobject\tower.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="matching\MatchingClient.h" />
     <ClInclude Include="network\CMessageDispacher.h" />
     <ClInclude Include="network\message.h" />
     <ClInclude Include="network\NetworkSystem.h" />
