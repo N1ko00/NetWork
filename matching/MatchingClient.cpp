@@ -100,4 +100,170 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 		WSACleanup();
 		return false;
 	}
+
+	bool connected = false;
+	for (addrinfo* p = res; p != nullptr; p = p->ai_next) {
+		if (::connect(s, p->ai_addr, static_cast<int>(p->ai_addrlen)) == 0) {
+			connected = true;
+			break;
+		}
+	}
+	freeaddrinfo(res);
+
+	if(!connected) {
+		outErr = "connect failed";
+		closesocket(s);
+		WSACleanup();
+		return false;
+	}
+
+	std::ostringstream req;
+	req << "POST " << pathQuery << " HTTP/1.1\r\n";
+	req << "Host:" << host << ":" << port << "\r\n";
+	req << "Content-Type: application/json\r\n";
+	req << "Connection: close\r\n";
+	req << "Content-Length: " << jsonBody.size() << "\r\n\r\n";
+	req << jsonBody;
+
+	const std::string raw = req.str();
+	if(::send(s,raw.data(), static_cast<int>(raw.size()), 0) == 0) {
+		outErr = "send failed";
+		closesocket(s);
+		WSACleanup();
+		return false;
+	}
+
+	std::string resp;
+	char buf[2048];
+	for (;;) {
+		const int n = ::recv(s, buf, sizeof(buf), 0);
+		if (n == 0) break; // connection closed
+		if (n < 0) {
+			outErr = "recv failed";
+			closesocket(s);
+			WSACleanup();
+			return false;
+		}
+		resp.append(buf, n);
+	}
+
+	closesocket(s);
+	WSACleanup();
+
+	auto posLine = resp.find("\r\n");
+	if (posLine == std::string::npos) {
+		outErr = "invalid HTTP response";
+		return false;
+	}
+	const std::string statusLine = resp.substr(0, posLine);
+	{
+		std::istringstream iss(statusLine);
+		std::string ver;
+		iss >> ver >> outStatus;
+	}
+
+	auto bodyPos = resp.find("\r\n\r\n");
+	if (bodyPos == std::string::npos) {
+		outBody.clear();
+		return true;
+	}
+	outBody = resp.substr(bodyPos + 4);
+	return true;
+}
+
+bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string& outBody, std::string& outErr) {
+	std::string host, pathQuery;
+	uint16_t port = 0;
+	if (!ParseHttpUrl(url, host, port, pathQuery, outErr)) return false;
+
+	WSADATA wsa{};
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+		outErr = "WSAStartup failed";
+		return false;
+	}
+
+	SOCKET s = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s == INVALID_SOCKET) {
+		outErr = "socket creation failed";
+		WSACleanup();
+		return false;
+	}
+
+	addrinfo hints{};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	addrinfo* res = nullptr;
+	const std::string portStr = std::to_string(port);
+	if (getaddrinfo(host.c_str(), portStr.c_str(), &hints, &res) != 0 || !res) {
+		outErr = "getaddrinfo failed";
+		closesocket(s);
+		WSACleanup();
+		return false;
+	}
+
+	bool connected = false;
+	for (addrinfo* p = res; p != nullptr; p = p->ai_next) {
+		if (::connect(s, p->ai_addr, static_cast<int>(p->ai_addrlen)) == 0) {
+			connected = true;
+			break;
+		}
+	}
+	freeaddrinfo(res);
+	if (!connected) {
+		outErr = "connect failed";
+		closesocket(s);
+		WSACleanup();
+		return false;
+	}
+	
+	std::ostringstream req;
+	req << "GET " << pathQuery << " HTTP/1.1\r\n";
+	req << "Host:" << host << ":" << port << "\r\n";
+	req << "Connection: close\r\n\r\n";
+
+	const std::string raw = req.str();
+	if (::send(s, raw.data(), static_cast<int>(raw.size()), 0) <= 0) {
+		outErr = "send failed";
+		closesocket(s);
+		WSACleanup();
+		return false;
+	}
+
+	std::string resp;
+	char buf[2048];
+	for (;;) {
+		const int n = ::recv(s, buf, sizeof(buf), 0);
+		if (n == 0) break; // connection closed
+		if (n < 0) {
+			outErr = "recv failed";
+			closesocket(s);
+			WSACleanup();
+			return false;
+		}
+		resp.append(buf, buf+n);
+	}
+
+	closesocket(s);
+	WSACleanup();
+
+	auto posLine = resp.find("\r\n");
+	if (posLine == std::string::npos) {
+		outErr = "invalid HTTP response";
+		return false;
+	}
+	const std::string statusLine = resp.substr(0, posLine);
+	{
+		std::istringstream iss(statusLine);
+		std::string ver;
+		iss >> ver >> outStatus;
+	}
+
+	auto bodyPos = resp.find("\r\n\r\n");
+	if (bodyPos == std::string::npos) {
+		outBody.clear();
+		return true;
+	}
+	outBody = resp.substr(bodyPos + 4);
+	return true;
 }
