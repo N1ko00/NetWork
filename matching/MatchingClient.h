@@ -7,34 +7,34 @@
 //マッチング結果で使うendpoint
 struct MatchingEndpoint
 {
-	std::string ip;
-	int port = 0;
+	std::string ip;  //UDPのIPアドレス
+	int port = 0;  //UDPのポート
 };
 
 //マッチングサーバーに部屋を作成してもらうためのリクエスト
 struct CreateRoomResult
 {
-	bool ok = false;
-	std::string error;
-	std::string roomId;
-	std::string hostToken;
+	bool ok = false;  //成功したかどうか
+	std::string error;  //エラーがあればエラーメッセージ
+	std::string roomId;  //部屋ID
+	std::string hostToken;  //ホストトークン
 };
 
 //マッチングサーバーに部屋に入れてもらうためのリクエスト
 struct JoinRoomResult
 {
-	bool ok = false;
-	std::string error;
-	MatchingEndpoint hostEndpoint;
+	bool ok = false;  //成功したかどうか
+	std::string error;  //エラーがあればエラーメッセージ
+	MatchingEndpoint hostEndpoint;  //ホストのUDPエンドポイント
 };
 
 //マッチングサーバーに部屋を探してもらうためのリクエスト
 struct PollRoomResult
 {
-	bool ok = false;
-	std::string error;
-	bool matched = false;
-	MatchingEndpoint hostEndpoint;
+	bool ok = false;  //成功したかどうか
+	std::string error;  //エラーがあればエラーメッセージ
+	bool matched = false;  //マッチングが成立したかどうか
+	MatchingEndpoint hostEndpoint;  //マッチングが成立している場合のホストのUDPエンドポイント
 };
 
 class MatchingClient {

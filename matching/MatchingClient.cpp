@@ -88,6 +88,7 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 		return false;
 	}
 
+	//ホスト名からIPアドレスを得る
 	addrinfo hints{};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -101,6 +102,7 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 		return false;
 	}
 
+	//得られたIPアドレスに順番に接続を試みる
 	bool connected = false;
 	for (addrinfo* p = res; p != nullptr; p = p->ai_next) {
 		if (::connect(s, p->ai_addr, static_cast<int>(p->ai_addrlen)) == 0) {
@@ -117,6 +119,7 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 		return false;
 	}
 
+	//HTTPリクエストを送る
 	std::ostringstream req;
 	req << "POST " << pathQuery << " HTTP/1.1\r\n";
 	req << "Host:" << host << ":" << port << "\r\n";
@@ -133,6 +136,7 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 		return false;
 	}
 
+	//HTTPレスポンスを受け取る
 	std::string resp;
 	char buf[2048];
 	for (;;) {
@@ -150,6 +154,7 @@ bool MatchingClient::HttpPostJson(const std::string& url, const std::string& jso
 	closesocket(s);
 	WSACleanup();
 
+	//HTTPレスポンスを簡単に解析する
 	auto posLine = resp.find("\r\n");
 	if (posLine == std::string::npos) {
 		outErr = "invalid HTTP response";
@@ -189,6 +194,7 @@ bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string
 		return false;
 	}
 
+	//ホスト名からIPアドレスを得る
 	addrinfo hints{};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -217,6 +223,7 @@ bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string
 		return false;
 	}
 	
+	//HTTPリクエストを送る
 	std::ostringstream req;
 	req << "GET " << pathQuery << " HTTP/1.1\r\n";
 	req << "Host:" << host << ":" << port << "\r\n";
@@ -230,6 +237,7 @@ bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string
 		return false;
 	}
 
+	//HTTPレスポンスを受け取る
 	std::string resp;
 	char buf[2048];
 	for (;;) {
@@ -247,6 +255,7 @@ bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string
 	closesocket(s);
 	WSACleanup();
 
+	//HTTPレスポンスを簡単に解析する
 	auto posLine = resp.find("\r\n");
 	if (posLine == std::string::npos) {
 		outErr = "invalid HTTP response";
@@ -266,4 +275,137 @@ bool MatchingClient::HttpGet(const std::string& url, int& outStatus, std::string
 	}
 	outBody = resp.substr(bodyPos + 4);
 	return true;
+}
+
+bool MatchingClient::JsonGetString(const std::string& json, const std::string& key, std::string& out) {
+	const std::string pat = "\"" + key + "\"";  //最小限のJSONパース　"key":"value" という形式を探す
+	auto k = json.find(pat);
+	if (k == std::string::npos) return false;
+	auto c = json.find(':', k + pat.size());    //コロンの位置を探す
+	if (c == std::string::npos) return false;
+	auto q1 = json.find('"', c + 1);            //コロンの後の最初のダブルクオーテーションを探す
+	if (q1 == std::string::npos) return false;
+	auto q2 = json.find('"', q1 + 1);           //コロンの後の最初のダブルクオーテーションの次のダブルクオーテーションを探す
+	if (q2 == std::string::npos) return false;
+	out = json.substr(q1 + 1, q2 - q1 - 1);    //見つかった値を出力
+	return true;
+}
+
+bool MatchingClient::JsonGetInt(const std::string& json, const std::string& key, int& out) {
+	const std::string pat = "\"" + key + "\"";  //最小限のJSONパース　"key":value という形式を探す
+	auto k = json.find(pat);
+	if (k == std::string::npos)return false;
+	auto c = json.find(':', k + pat.size());    //コロンの位置を探す
+	if (c == std::string::npos)return false;
+	size_t p = c + 1;
+	while (p < json.size() && std::isspace(static_cast<unsigned char>(json[p])))++p;  //コロンの後の最初の数字を探す
+	size_t e = p;
+	while (e < json.size() && (json[e] == '-' || std::isdigit(static_cast<unsigned char>(json[e]))))++e;  //数値の終わりを探す)
+	if (e == p)return false; 
+	out = std::atoi(json.substr(p, e - p).c_str());  //見つかった値を出力
+	return true;
+}
+
+bool MatchingClient::JsonGetBool(const std::string& json, const std::string& key, bool& out) {
+	const std::string pat = "\"" + key + "\"";  //最小限のJSONパース　"key":true/false という形式を探す
+	auto k = json.find(pat);
+	if (k == std::string::npos)return false;
+	auto c = json.find(':', k + pat.size());    //コロンの位置を探す
+	if (c == std::string::npos)return false;
+	const auto t = json.find("true", c + 1);    //コロンの後のtrueを探す
+	const auto f = json.find("false", c + 1);   //コロンの後のfalseを探す
+	//trueとfalseの両方が見つれた場合は、より近い方を採用する
+	if (t != std::string::npos && (f == std::string::npos || t < f)) {
+		out = true;
+		return true;
+	}
+	if (f != std::string::npos) {
+		out = false;
+		return true;
+	}
+	return false;
+}
+
+CreateRoomResult MatchingClient::CreateRoom(const std::string serverUrl, int myUdpPort) {
+	//API呼び出し: HOSTがルームを作成
+	CreateRoomResult r{};
+	int status = 0;
+	std::string body, err;
+	const std::string url = serverUrl + "/create";
+	const std::string req = std::string{ "{\"hostUdpPort\": " } + std::to_string(myUdpPort) + "\"}";
+	if(!HttpPostJson(url, req, status, body, err)) {
+		r.error = err;
+		return r;
+	}
+	if (status != 200) {
+		r.error = body;
+		return r;
+	}
+
+	//レスポンスからroomIdとhostTokenを抜き取る
+	if (!JsonGetString(body, "roomId", r.roomId) || JsonGetString(body, "hostToken", r.hostToken)) {
+		r.error = "roomId not found in response";
+		return r;
+	}
+
+	r.ok = true;
+	return r;
+}
+
+JoinRoomResult MatchingClient::JoinRoom(const std::string serverUrl, const std::string roomId, int myUdpPort) {
+	//API呼び出し: GUESTがルームに入る
+	JoinRoomResult r{};
+	int status = 0;
+	std::string body, err;
+	const std::string url = serverUrl + "/join";
+	const std::string req = std::string{ "{\"roomId\": \"" } + roomId + "\",\"joinUdpPort\":" + std::to_string(myUdpPort) + "}";
+	if(!HttpPostJson(url,req,status, body, err)) {
+		r.error = err;
+		return r;
+	}
+	if(status != 200) {
+		r.error = body;
+		return r;
+	}
+
+	//レスポンス解析 hostendpoint.ip / port
+	if(!JsonGetString(body, "ip", r.hostEndpoint.ip) || !JsonGetInt(body,"port", r.hostEndpoint.port)) {
+		r.error = "ip or port not found in response";
+		return r;
+	}
+
+	r.ok = true;
+	return r;
+}
+
+PollRoomResult MatchingClient::PollRoom(const std::string serverUrl, const std::string roomId, const std::string hostToken) {
+	//API呼び出し: HOSTがマッチング成立を待つ
+	PollRoomResult r{};
+	int status = 0;
+	std::string body, err;
+	const std::string url = serverUrl + "/poll?roomId=" + UrlEncodeSimple(roomId) + "&hostToken=" + UrlEncodeSimple(hostToken);
+	if(!HttpGet(url, status, body, err)) {
+		r.error = err;
+		return r;
+	}
+	if(status != 200) {
+		r.error = body;
+		return r;
+	}
+	//レスポンス解析 matched / hostendpoint.ip / port
+	bool matched = false;
+	if (!JsonGetBool(body, "matched", matched)) {
+		r.error = "invalid poll response";
+		return r;
+		
+	}
+	r.matched = matched;
+	if (matched) {
+		if (!JsonGetString(body, "ip", r.joinEndpoint.ip) || !JsonGetInt(body, "port", r.joinEndpoint.port)) {
+			r.error = "invalid poll matched response";
+			return r;
+		}
+	}
+	r.ok = true;
+	return r;
 }
