@@ -34,7 +34,7 @@ struct PollRoomResult
 	bool ok = false;  //成功したかどうか
 	std::string error;  //エラーがあればエラーメッセージ
 	bool matched = false;  //マッチングが成立したかどうか
-	MatchingEndpoint hostEndpoint;  //マッチングが成立している場合のホストのUDPエンドポイント
+	MatchingEndpoint joinEndpoint;  //GUESTのUDPエンドポイント 
 };
 
 class MatchingClient {

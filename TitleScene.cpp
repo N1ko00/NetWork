@@ -26,6 +26,45 @@ bool TitleScene::ApplyAndGoToP2PScene()
     return true;
 }
 
+bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int remotePort, int myPort) {
+	if (!IsValidPort(myPort) || !IsValidPort(remotePort) || remoteIp.empty()) return false;
+	//ConectionSettingsStoreに保存
+	//マッチングで取得したendpointをp2pのruntime settingに適用する
+	auto& s = ConnectionSettingsStore::Mutable();
+	s.enabled = true;
+	s.myPort = myPort;
+	s.remotePort = remotePort;
+	s.remoteIp = remoteIp;
+	SceneManager::SetCurrentScene("P2PScene");
+	return true;
+}
+
+void TitleScene::UpdateHostPolling(uint64_t delta){
+    if (!m_isHostWaiting)return;
+	m_pollAccumMs += delta / 1000; //usec -> msec 想定
+	if (m_pollAccumMs < m_pollAccumMs)return;
+	m_pollAccumMs = 0;
+
+	//マッチングサーバにpollする
+	const std::string sercerurl = m_serverUrlInput.data();
+    const std::string roomId = m_roomIdInput.data();
+	auto poll = m_matchingClient.PollRoom(sercerurl, roomId, m_hostToken);
+    if(!poll.ok) {
+        m_matchStatus = "Poll error: " + poll.error;
+        return;
+	}
+    if (!poll.matched) {
+        m_matchStatus = "waiting join...";
+        return;
+    }
+
+	//マッチング成立
+    m_matchStatus = "matched. go P2P";
+    m_isHostWaiting = false;
+    ApplyRemoteAndGoToP2PScene(poll.joinEndpoint.ip, poll.joinEndpoint.port, m_myPortInput);
+}
+
+
 void TitleScene::update(uint64_t delta)
 {
     (void)delta;
@@ -39,9 +78,14 @@ void TitleScene::update(uint64_t delta)
     const float startButtonX = screenWidth * 0.68f;
 
     
+	//Host待機中は定期的にマッチングサーバーにpollする
+	UpdateHostPolling(delta);
+
+	//enterは既存の設定でP2Pシーンへ
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN)) {
         ApplyAndGoToP2PScene();
-    }
+        return;
+	}
 
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_ESCAPE)) {
         PostQuitMessage(0);
@@ -104,10 +148,34 @@ void TitleScene::draw(uint64_t delta)
     }
 
     ImGui::Begin("P2P Connection Setup");
+    //既存の手動入力
     ImGui::InputInt("My Port", &m_myPortInput);
     ImGui::InputText("Remote IP", m_remoteIpInput.data(), static_cast<int>(m_remoteIpInput.size()));
     ImGui::InputInt("Remote Port", &m_remotePortInput);
     ImGui::Text("Current: myport=%d remote=%s:%d", m_myPortInput, m_remoteIpInput.data(), m_remotePortInput);
+    
+    //追加の入力
+    if (ImGui::Button("Manual Connect")) {
+        if (!ApplyAndGoToP2PScene()) {
+			m_matchStatus = "manual connect failed. invalid input";
+        }
+    }
+	ImGui::Separator();
+	ImGui::InputText("Server URL", m_serverUrlInput.data(), static_cast<int>(m_serverUrlInput.size()));
+	ImGui::InputText("Room ID", m_roomIdInput.data(), static_cast<int>(m_roomIdInput.size()));
+
+    if (ImGui::Button("Host(Create)")) {
+		//マッチングサーバーにホスト登録する
+		auto r = m_matchingClient.CreateRoom(m_serverUrlInput.data(), m_myPortInput);
+        if (!r.ok) {
+			m_matchStatus = "Create failed :" + r.error;
+			m_isHostWaiting = false;
+        }
+        else {
+			std::fill(m_roomIdInput.begin(), m_roomIdInput.end(), '\0');
+
+        }
+    }
     ImGui::End();
 
 }

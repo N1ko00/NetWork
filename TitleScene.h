@@ -7,6 +7,7 @@
 #include <memory>
 #include <array>
 #include "ConnectionSettings.h"
+#include "matching/MatchingClient.h"
 
 class TitleScene : public IScene {
 public:
@@ -28,8 +29,18 @@ private:
     int m_myPortInput = 50001;
     int m_remotePortInput = 50000;
     std::array<char, 64> m_remoteIpInput{};
+	std::array<char, 128> m_serverUrlInput{};
+	std::array<char, 64> m_roomIdInput{};
+    std::string m_hostToken{};
+    std::string m_matchStatus{};
+	MatchingClient m_matchingClient;
+    bool m_isHostWaiting = false;
+	uint64_t m_pollAccumMs = 0;
+	uint64_t m_pollIntervalMs = 1000;
     
-    bool ApplyAndGoToP2PScene();
+    bool ApplyAndGoToP2PScene();  
+	bool ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int remotePort, int myPort);
+    void UpdateHostPolling(uint64_t delta);
 };
 
 REGISTER_CLASS(TitleScene)
