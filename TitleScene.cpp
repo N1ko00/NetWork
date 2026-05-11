@@ -173,8 +173,31 @@ void TitleScene::draw(uint64_t delta)
         }
         else {
 			std::fill(m_roomIdInput.begin(), m_roomIdInput.end(), '\0');
-
+			strncpy_s(m_roomIdInput.data(), m_roomIdInput.size(), r.roomId.c_str(), _TRUNCATE);
+            m_hostToken = r.hostToken;
+            m_isHostWaiting = true;
+            m_pollAccumMs = 0;
+            //相手のjoin待ち
+            m_matchStatus = "created room. waiting jon...";
         }
+    }
+	ImGui::SameLine();
+    if (ImGui::Button("Join")) {
+		//API叩いてマッチングサーバーに参加する
+        auto r = m_matchingClient.JoinRoom(m_serverUrlInput.data(), m_roomIdInput.data(), m_myPortInput);
+        if (!r.ok) {
+			m_matchStatus = "join failed :" + r.error;
+        }
+        else {
+			m_matchStatus = "join success. go P2P";
+			//connection settingsにendpoint保存してP2Pシーンへ
+            //join側は受け取ったhostendpointでp2pへ
+            ApplyRemoteAndGoToP2PScene(r.hostEndpoint.ip, r.hostEndpoint.port, m_myPortInput);
+        }
+    }
+    ImGui::Text("Status: %s,", m_matchStatus.c_str());
+    if (m_isHostWaiting) {
+        ImGui::Text("HostToken: %s", m_hostToken.c_str());
     }
     ImGui::End();
 
@@ -209,6 +232,24 @@ void TitleScene::init()
         m_remoteIpInput.size(),
         s.remoteIp.c_str(),
         _TRUNCATE);
+
+	//マッチング用の入力は空にしておく
+	std::fill(m_serverUrlInput.begin(), m_serverUrlInput.end(), '\0');
+    strncpy_s(
+        m_serverUrlInput.data(),
+        m_serverUrlInput.size(),
+        s.matchingServerUrl.c_str(),
+		_TRUNCATE);
+	std::fill(m_roomIdInput.begin(), m_roomIdInput.end(), '\0');
+    strncpy_s(
+        m_roomIdInput.data(),
+        m_roomIdInput.size(),
+		s.roomId.c_str(),
+		_TRUNCATE);
+    m_hostToken = s.hostToken;
+    m_matchStatus = "idle";
+    m_isHostWaiting = false;
+    m_pollAccumMs = 0;
 }
 
 void TitleScene::dispose()

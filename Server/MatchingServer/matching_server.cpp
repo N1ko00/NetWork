@@ -110,7 +110,7 @@ bool MatchingServer::HandleOneClient() {
 
 	// クライアントからHTTPリクエストを読み取る
 	HttpRequest req{};
-	if (ReadHttpRequest(static_cast<int>(client), req)) {  // クライアントからHTTPリクエストを読み取る
+	if (!ReadHttpRequest(static_cast<int>(client), req)) {  // クライアントからHTTPリクエストを読み取る
 		const HttpResponse bad{  // HTTPリクエストの読み取りに失敗した場合は400 Bad Requestを返す
 			400, "application/json; charset=utf-8",
 			"{\"error\":{\"code\":\"bad_request\",\"message\":\"invalid http request\"}}"
