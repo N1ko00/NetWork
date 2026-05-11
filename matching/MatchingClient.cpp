@@ -343,7 +343,7 @@ CreateRoomResult MatchingClient::CreateRoom(const std::string serverUrl, int myU
 	}
 
 	//レスポンスからroomIdとhostTokenを抜き取る
-	if (!JsonGetString(body, "roomId", r.roomId) || JsonGetString(body, "hostToken", r.hostToken)) {
+	if (!JsonGetString(body, "roomId", r.roomId) || !JsonGetString(body, "hostToken", r.hostToken)) {
 		r.error = "roomId not found in response";
 		return r;
 	}

@@ -1,4 +1,4 @@
-#include "room_store.h"
+#include "roomStore.h"
 
 #include <iostream>
 #include <random>
@@ -39,7 +39,7 @@ ApiResult RoomStore::CreateRoom(const Endpoint& hostEP) {
 	std::ostringstream oss;
 	oss<<"{"
 		<<"\"roomId\":\""<<EscapeJson(room.roomId)<<"\","
-		<< "\"hostToken\":" << EscapeJson(room.hostToken)<<"\""
+		<< "\"hostToken\":\"" << EscapeJson(room.hostToken)<<"\""
 		<< "}";
 	return { 200, oss.str() };
 }
