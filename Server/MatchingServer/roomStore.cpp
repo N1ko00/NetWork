@@ -101,7 +101,7 @@ ApiResult RoomStore::PollRoom(const std::string& roomId, const std::string& host
 	//Pollˆ—
 	//Host‚ªQ‰Á‘Ò‚¿’†‚©Join¬—§Ï‚İ‚©‚ğŠm”F‚·‚é
 	if (!room.joinEndpoint.has_value()) {
-		return { 200,"{\matchined\":false" };
+		return { 200,"{\"matched\":false}" };
 	}
 
 	const Endpoint& joinEp = *room.joinEndpoint;
