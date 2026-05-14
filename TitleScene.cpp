@@ -7,9 +7,14 @@
 #include <cstring>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 namespace {
-    bool IsValidPort(int p) { return p >= 0 && p <= 65535; }
+    bool IsValidPort(int p) { return p >= 1 && p <= 65535; }
+    
+    bool isemptyText(const std::array<char, 64>& text) {
+        return text[0] == '\0';
+    }
 }
 
 bool TitleScene::ApplyAndGoToP2PScene()
@@ -22,19 +27,39 @@ bool TitleScene::ApplyAndGoToP2PScene()
     s.myPort = m_myPortInput;
     s.remotePort = m_remotePortInput;
     s.remoteIp = m_remoteIpInput.data();
+	s.matchingServerIp = m_serverIpInput.data();
+    s.matchingServerPort = m_serverPortInput;
+	s.matchingServerUrl = BuildServerUrl();
+
+    std::cout<<"[TitleScene][Manual]Start P2P: myport="<<s.myPort
+        <<" remote="<<s.remoteIp<<":"<<s.remotePort<<std::endl;
     SceneManager::SetCurrentScene("P2PScene");
     return true;
 }
 
-bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int remotePort, int myPort) {
+bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int remotePort, int myPort, const char* sourceLabel) {
 	if (!IsValidPort(myPort) || !IsValidPort(remotePort) || remoteIp.empty()) return false;
-	//ConectionSettingsStoreに保存
+	//ConectionSettingsStoreに反映
 	//マッチングで取得したendpointをp2pのruntime settingに適用する
 	auto& s = ConnectionSettingsStore::Mutable();
 	s.enabled = true;
 	s.myPort = myPort;
 	s.remotePort = remotePort;
 	s.remoteIp = remoteIp;
+	s.matchingServerIp = m_serverIpInput.data();
+	s.matchingServerPort = m_serverPortInput;
+	s.matchingServerUrl = BuildServerUrl();
+	s.roomId = m_roomIdInput.data();
+	s.hostToken = m_hostToken;
+
+    m_lastMatchedEndpoint.ip = remoteIp;
+    m_lastMatchedEndpoint.port = remotePort;
+
+	//デバッグ出力
+    std::cout<<"[TitleScene][" << (sourceLabel ? sourceLabel : "Matching")
+         << "] Start P2P: myPort=" << myPort
+         << " remote=" << remoteIp << ":" << remotePort
+         << " roomId=" << s.roomId << "\n";
 	SceneManager::SetCurrentScene("P2PScene");
 	return true;
 }
@@ -64,6 +89,28 @@ void TitleScene::UpdateHostPolling(uint64_t delta){
     ApplyRemoteAndGoToP2PScene(poll.joinEndpoint.ip, poll.joinEndpoint.port, m_myPortInput);
 }
 
+std::string TitleScene::BuildServerUrl()const {
+    std::ostringstream oss;
+    oss << "http://" << m_serverIpInput.data() << ":" << m_serverPortInput;
+	return oss.str();
+}
+
+const char* TitleScene::MatchingStateLabel()const {
+    switch(m_matchingUIState) {
+    case MatchingUIState::Idle: return "Idle";
+    case MatchingUIState::CreatingRoom: return "Creating Room...";
+    case MatchingUIState::WaitingForJoin: return "Waiting for Join...";
+    case MatchingUIState::JoiningRoom: return "Joining Room...";
+    case MatchingUIState::Matched: return "Matched!";
+    case MatchingUIState::Faile: return "Failed";
+    case MatchingUIState::Timeout: return "Timeout";
+    default: return "Unknown";
+	}
+}
+
+bool TitleScene::IsHostWaiting()const {
+    return m_matchingUIState == MatchingUIState::WaitingForJoin;
+}
 
 void TitleScene::update(uint64_t delta)
 {

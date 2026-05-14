@@ -13,6 +13,8 @@ struct RuntimeConnectionSettings
 
 	//Matching用の最小メタ情報　UI状態保持とデバック用
 	std::string matchingServerUrl = "http://127.0.0.1:8080";
+	std::string matchingServerIp = "127.0.0.1";
+	int matchingServerPort = 8080;
 	std::string roomId{};
 	std::string hostToken{};
 };
