@@ -37,6 +37,7 @@ private:
         Matched,
         Failed,
         Timeout,
+		Cancelled,
 	};
 
     //Server設定
@@ -64,6 +65,9 @@ private:
 	uint64_t m_waitAccumMs = 0;
 	uint64_t m_pollIntervalMs = 1000;
 	uint64_t m_waitTimeoutMs = 120000;
+	uint64_t m_joinRequestTimeoutMs = 8000;  //join API待機の目安
+	uint64_t m_pollMaxWaitMs = 12000; //poll APIの最大待機時間の目安
+	bool m_cancelInFlight = false;  //cacel実行中のUI制御
 
 	bool ApplyAndGoToP2PScene();    //Manual入力をConnectionSettingsStoreに反映してP2PSceneへ
 	//ApplyAndGoToP2PSceneの上位互換　マッチングで得たendpointをConnectionSettingsStoreに反映してP2PSceneへ
@@ -81,6 +85,9 @@ private:
 	void CancelHostWaiting();  //ホスト待機をキャンセルしてIdle状態へ
 	void DrawMatchingUi();  //マッチングUIの描画
 	void DrawConnectionStatusUi();  //接続状態表示UIの描画
+
+	bool TryParseServerErrorCode(const std::string& raw, std::string& outCode)const;  //APIの生エラーからエラーコードを抜き取る
+	void SaveUiToConnectionSettings();  //UIの入力をConnectionSettingsStoreに保存する
 };
 
 REGISTER_CLASS(TitleScene)

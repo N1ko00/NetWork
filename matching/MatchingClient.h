@@ -48,6 +48,9 @@ public:
 	//pollを呼び、matchedとjoinendpointを受け取る
 	PollRoomResult PollRoom(const std::string serverUrl, const std::string roomId, const std::string hostToken);
 
+	//cancelを呼び、host側待機をキャンセルする
+	bool CancelRoom(const std::string serverUrl, const std::string roomId, const std::string hostToken, std::string& outErr);
+
 private:
 	//最小HTTP POST(JSON)
 	bool HttpPostJson(const std::string& url, const std::string& jsonBody, int& outStatus, std::string& outBody, std::string& outErr);
@@ -62,4 +65,7 @@ private:
 	bool JsonGetString(const std::string& json, const std::string& key, std::string& out);
 	bool JsonGetInt(const std::string& json, const std::string& key, int& out);
 	bool JsonGetBool(const std::string & json, const std::string & key, bool& out);
+
+	
+	std::string ExtractErrorCode(const std::string& body);
 };

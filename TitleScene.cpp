@@ -19,6 +19,8 @@ namespace {
 
 bool TitleScene::ApplyAndGoToP2PScene()
 {
+	SaveUiToConnectionSettings();  //UIの入力をConnectionSettingsStoreに保存する
+
     if (!IsValidPort(m_myPortInput) || !IsValidPort(m_remotePortInput)) return false;
     if (m_remoteIpInput[0] == '\0') return false;
     
@@ -38,7 +40,9 @@ bool TitleScene::ApplyAndGoToP2PScene()
 }
 
 bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int remotePort, int myPort, const char* sourceLabel) {
-	if (!IsValidPort(myPort) || !IsValidPort(remotePort) || remoteIp.empty()) return false;
+	SaveUiToConnectionSettings();  //UIの入力をConnectionSettingsStoreに保存する
+    
+    if (!IsValidPort(myPort) || !IsValidPort(remotePort) || remoteIp.empty()) return false;
 	//ConectionSettingsStoreに反映
 	//マッチングで取得したendpointをp2pのruntime settingに適用する
 	auto& s = ConnectionSettingsStore::Mutable();
@@ -65,41 +69,55 @@ bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int rem
 }
 
 void TitleScene::UpdateHostPolling(uint64_t delta){
-    if (!IsHostWaiting())return;
-	m_pollAccumMs += delta / 1000; //usec -> msec 想定
-    m_waitAccumMs += delta / 1000;
-    
-    if (m_waitAccumMs >= m_waitTimeoutMs) {
-        // Timeout処理:
-        // Joinが来ないまま一定時間経過したらUIで明示し、pollを止める。
+    if (!IsHostWaiting()) return;
+    if (m_cancelInFlight) return;
+
+    const uint64_t deltaMs = delta / 1000; // usec -> msec
+    m_pollAccumMs += deltaMs;
+    m_waitAccumMs += deltaMs;
+
+    // Poll全体の最大待機時間
+    if (m_waitAccumMs >= m_pollMaxWaitMs) {
         m_hostToken.clear();
         m_pollAccumMs = 0;
-        SetState(MatchingUIState::Timeout, "timeout");
+        SetState(MatchingUIState::Timeout, "poll max wait timeout");
         m_errorMessage = "timeout";
-        std::cerr << "[TitleScene][Host] Matching timeout. roomId=" << m_roomIdInput.data() << "\n";
+        std::cerr << "[TitleScene][Host] poll timeout roomId=" << m_roomIdInput.data() << "\n";
         return;
     }
-    
-    if (m_pollAccumMs < m_pollIntervalMs)return;
-	m_pollAccumMs = 0;
 
-    // poll処理:
-    // Hostは一定間隔で /poll を呼び、Join済みendpointが来たらP2Pへ遷移する。
-    const std::string serverUrl = BuildServerUrl();    
+    if (m_pollAccumMs < m_pollIntervalMs) return;
+    m_pollAccumMs = 0;
+
+    const std::string serverUrl = BuildServerUrl();
     const std::string roomId = m_roomIdInput.data();
+
+    std::cout << "[TitleScene][Poll][Req] url=" << serverUrl
+        << " roomId=" << roomId
+        << " hostTokenEmpty=" << (m_hostToken.empty() ? "true" : "false") << "\n";
+
     auto poll = m_matchingClient.PollRoom(serverUrl, roomId, m_hostToken);
+
     if (!poll.ok) {
-		SetError(poll.error);
-        return;
-	}
-    if (!poll.matched) {
-		SetState(MatchingUIState::WaitingForJoin, "waiting for join...");
+        SetError(poll.error);
+        std::cerr << "[TitleScene][Poll][Fail] " << poll.error << "\n";
         return;
     }
 
-    //Host matched処理
-	SetState(MatchingUIState::Matched, "matched! starting P2P...");
-	ApplyRemoteAndGoToP2PScene(poll.joinEndpoint.ip, poll.joinEndpoint.port, m_hostMyPortInput, "HostPoll");
+    if (!poll.matched) {
+        SetState(MatchingUIState::WaitingForJoin, "waiting for join...");
+        return;
+    }
+
+    SetState(MatchingUIState::Matched, "matched! starting P2P...");
+    std::cout << "[TitleScene][Poll][Matched] joinEndpoint="
+        << poll.joinEndpoint.ip << ":" << poll.joinEndpoint.port << "\n";
+
+    ApplyRemoteAndGoToP2PScene(
+        poll.joinEndpoint.ip,
+        poll.joinEndpoint.port,
+        m_hostMyPortInput,
+        "HostPoll");
 }
 
 std::string TitleScene::BuildServerUrl()const {
@@ -117,6 +135,7 @@ const char* TitleScene::MatchingStateLabel()const {
     case MatchingUIState::Matched: return "Matched!";
     case MatchingUIState::Failed: return "Failed";
     case MatchingUIState::Timeout: return "Timeout";
+	case MatchingUIState::Cancelled: return "Cancelled";
     default: return "Unknown";
 	}
 }
@@ -134,35 +153,33 @@ void TitleScene::SetState(MatchingUIState state, const std::string& message) {
 }
 
 std::string TitleScene::ToUiErrorMessage(const std::string& rawError)const {
-    //エラー表示
+    std::string code;
+    TryParseServerErrorCode(rawError, code);
+
+    // サーバーエラーコード優先でUI文言を決める
+    if (code == "room_not_found") return "room not found";
+    if (code == "room_full" || code == "room_already_matched") return "room full";
+    if (code == "room_expired") return "room expired";
+    if (code == "room_cancelled" || code == "room_closed") return "room cancelled";
+    if (code == "invalid_port") return "invalid port";
+    if (code == "invalid_response" || code == "bad_request") return "invalid response";
+    if (code == "timeout") return "timeout";
+
+    // 通信失敗系
     if (rawError.find("connect failed") != std::string::npos ||
         rawError.find("getaddrinfo failed") != std::string::npos ||
-        rawError.find("server unreachable") != std::string::npos) {
+        rawError.find("send failed") != std::string::npos ||
+        rawError.find("recv failed") != std::string::npos) {
         return "server unreachable";
-    }
-
-    if(rawError.find("room not found") != std::string::npos) {
-        return "room not found";
-	}
-
-    if (rawError.find("room_already_matched") != std::string::npos||
-        rawError.find("room full") != std::string::npos) {
-        return "room full";
-    }
-
-    if (rawError.find("invalid_port") != std::string::npos ||
-        rawError.find("invalid port") != std::string::npos) {
-        return "invalid port";
-    }
-
-    if (rawError.find("timeout") != std::string::npos) {
-        return "timeout";
-        
     }
 
     if (rawError.find("invalid") != std::string::npos ||
         rawError.find("parse") != std::string::npos) {
-        return "parse error";
+        return "invalid response";
+    }
+
+    if (rawError.find("timeout") != std::string::npos) {
+        return "timeout";
     }
 
     return rawError.empty() ? "unknown error" : rawError;
@@ -187,6 +204,7 @@ void TitleScene::StartCreateRoom() {
     auto r=m_matchingClient.CreateRoom(BuildServerUrl(), m_hostMyPortInput);
     if (!r.ok) {
         SetError(r.error);
+        std::cerr << "[TitleScene][Create][Fail] " << r.error << "\n";
         return;
 	}
     if (r.roomId.empty() || r.hostToken.empty()) {
@@ -217,9 +235,21 @@ void TitleScene::StartJoinRoom() {
 	}
 
 	SetState(MatchingUIState::JoiningRoom, "joining room...");
+    std::cout << "[TitleScene][Join][Req] server=" << BuildServerUrl()
+        << " roomId=" << m_roomIdInput.data()
+        << " myUdpPort=" << m_joinMyPortInput << "\n";
+
     auto r=m_matchingClient.JoinRoom(BuildServerUrl(), m_roomIdInput.data(), m_joinMyPortInput);
     if (!r.ok) {
-        SetError(r.error);
+        //join失敗はUIでFailedかTimeoutを分ける
+        if (ToUiErrorMessage(r.error) == "timeout") {
+            SetState(MatchingUIState::Timeout, "join timeout");
+			m_errorMessage = "timeout";
+        }
+        else {
+            SetError(r.error);
+        }
+		std::cerr << "[TitleScene][Join][Fail] " << r.error << "\n";
         return;
     }
 
@@ -230,12 +260,54 @@ void TitleScene::StartJoinRoom() {
 }
 
 void TitleScene::CancelHostWaiting() {
-    //cancel処理
-	m_hostToken.clear();
-	m_pollAccumMs = 0;
-	m_waitAccumMs = 0;
-	SetState(MatchingUIState::Idle, "host waiting cancelled");
-	std::cout << "[TitleScene][Host] waiting cancelled.roomId=" << m_roomIdInput.data() << "\n";
+    if (!IsHostWaiting()) return;
+
+    m_cancelInFlight = true;
+
+    // Cancel処理:
+    // ルームを閉じてJoin不能にする（サーバー側 /cancel API）
+    std::string err;
+    const bool ok = m_matchingClient.CancelRoom(
+        BuildServerUrl(),
+        m_roomIdInput.data(),
+        m_hostToken,
+        err);
+
+    if (!ok) {
+        SetError(err);
+        m_cancelInFlight = false;
+        return;
+    }
+
+    m_hostToken.clear();
+    m_pollAccumMs = 0;
+    m_waitAccumMs = 0;
+    m_cancelInFlight = false;
+
+    SetState(MatchingUIState::Cancelled, "host waiting cancelled");
+    std::cout << "[TitleScene][Host] cancelled roomId=" << m_roomIdInput.data() << "\n";
+}
+
+bool TitleScene::TryParseServerErrorCode(const std::string& raw, std::string& outCode) const
+{
+    // {"error":{"code":"xxx","message":"..."}} から code を簡易抽出する
+    const std::string pat = "\"code\":\"";
+    const auto p = raw.find(pat);
+    if (p == std::string::npos) return false;
+    const auto s = p + pat.size();
+    const auto e = raw.find('"', s);
+    if (e == std::string::npos) return false;
+    outCode = raw.substr(s, e - s);
+    return true;
+}
+
+void TitleScene::SaveUiToConnectionSettings() {
+	auto& s = ConnectionSettingsStore::Mutable();
+	s.matchingServerIp = m_serverIpInput.data();
+    s.matchingServerPort = m_serverPortInput;
+    s.matchingServerUrl = BuildServerUrl();
+    s.roomId = m_roomIdInput.data();
+    s.hostToken = m_hostToken;
 }
 
 void TitleScene::update(uint64_t delta)
@@ -369,12 +441,18 @@ void TitleScene::DrawMatchingUi(){
         ImGui::Text("Host State: %s", MatchingStateLabel());
         if (IsHostWaiting()) {
             ImGui::SameLine();
+			if (m_cancelInFlight)ImGui::BeginDisabled();
             if (ImGui::Button("Cancel")) {
-                    CancelHostWaiting();
+                CancelHostWaiting();
             }
+			if (m_cancelInFlight) ImGui::EndDisabled();
         }
     }
-    
+	// HostTokenはHostがJoinを待つために必要なトークン。
+    ImGui::Text("HostToken: %s", m_hostToken.empty() ? "(empty)" : m_hostToken.c_str());
+    ImGui::Text("PollInterval(ms): %llu", static_cast<unsigned long long>(m_pollIntervalMs));
+    ImGui::Text("PollMaxWait(ms): %llu", static_cast<unsigned long long>(m_pollMaxWaitMs));
+
     // Join:
     // RoomIDと自分のUDP受信portを入力し、成功したらHost endpointでP2Pへ遷移する。
     if (ImGui::CollapsingHeader("Join", ImGuiTreeNodeFlags_DefaultOpen)) {

@@ -364,7 +364,8 @@ JoinRoomResult MatchingClient::JoinRoom(const std::string serverUrl, const std::
 		return r;
 	}
 	if(status != 200) {
-		r.error = body;
+		const std::string code = ExtractErrorCode(body);
+		r.error = code.empty() ? body : body;
 		return r;
 	}
 
@@ -388,8 +389,9 @@ PollRoomResult MatchingClient::PollRoom(const std::string serverUrl, const std::
 		r.error = err;
 		return r;
 	}
-	if(status != 200) {
-		r.error = body;
+	if (status != 200) {  //HTTPエラーはマッチング失敗とみなす
+		const std::string code = ExtractErrorCode(body);
+		r.error = code.empty() ? body : body;
 		return r;
 	}
 	//レスポンス解析 matched / hostendpoint.ip / port
@@ -408,4 +410,40 @@ PollRoomResult MatchingClient::PollRoom(const std::string serverUrl, const std::
 	}
 	r.ok = true;
 	return r;
+}
+
+std::string MatchingClient::ExtractErrorCode(const std::string& body) {
+	std::string code;
+	if (JsonGetString(body, "code", code)) {
+		return code;
+	}
+	return {};
+}
+
+bool MatchingClient::CancelRoom(const std::string serverUrl, const std::string roomId, const std::string hostToken, std::string& outErr)
+{
+	int status = 0;
+	std::string body;
+	const std::string url = serverUrl + "/cancel";
+	const std::string req =
+		std::string("{\"roomId\":\"") + roomId +
+		"\",\"hostToken\":\"" + hostToken + "\"}";
+
+	std::cout << "[MatchingClient][Cancel][Req] " << url
+		<< " roomId=" << roomId
+		<< " tokenEmpty=" << (hostToken.empty() ? "true" : "false") << "\n";
+
+	if (!HttpPostJson(url, req, status, body, outErr)) {
+		return false;
+	}
+
+	std::cout << "[MatchingClient][Cancel][Res] status=" << status
+		<< " body=" << body << "\n";
+
+	if (status != 200) {
+		const std::string code = ExtractErrorCode(body);
+		outErr = code.empty() ? body : code;
+		return false;
+	}
+	return true;
 }
