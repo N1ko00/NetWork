@@ -35,7 +35,7 @@ private:
         WaitingForJoin,
         JoiningRoom,
         Matched,
-        Faile,
+        Failed,
         Timeout,
 	};
 
