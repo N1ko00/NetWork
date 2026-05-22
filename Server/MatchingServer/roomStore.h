@@ -25,6 +25,7 @@ public:
 	ApiResult JoinRoom(const std::string& roomId, const Endpoint& joinEp);   // ルームに参加し、ホストのエンドポイントを返す
 	ApiResult PollRoom(const std::string& roomId, const std::string& hostToken);   // ホストがルームの状態を確認するためのAPI。参加者がいる場合は参加者のエンドポイントを返す
 
+	ApiResult CancelRoom(const std::string& roomId, const std::string& hostToken);  // ルームをキャンセルするAPI
 private:
 	struct Room {   
 		std::string roomId;   // ルームID
@@ -32,6 +33,15 @@ private:
 		Endpoint hostEndpoint{};  // ホストのエンドポイント
 		std::optional<Endpoint> joinEndpoint{};  // 参加者のエンドポイント（参加者がいない場合はnullopt）
 		std::chrono::steady_clock::time_point expiresAt;  // ルームの有効期限
+
+		enum class RoomState {
+			Waiting,  //待機
+			Matched,  //マッチング成立
+			Closed,	  //クローズ
+		};
+
+		RoomState state = RoomState::Waiting;
+		std::string closeReason{};
 	};
 
 	std::string MakeRoomId();  // ランダムなルームIDを生成する

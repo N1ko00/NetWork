@@ -21,6 +21,8 @@ ApiResult RoomStore::CreateRoom(const Endpoint& hostEP) {
 	//ルームIDとトークンを生成
 	//HostのUDP受信ポートとHTTP送信元IDから得たEndpointを保存する
 	Room room;
+	room.state = Room::RoomState::Waiting;
+	room.closeReason.clear();
 	room.roomId = MakeRoomId();
 	while (m_rooms.find(room.roomId) != m_rooms.end()) {
 		room.roomId = MakeRoomId();
@@ -56,6 +58,9 @@ ApiResult RoomStore::JoinRoom(const std::string& roomId, const Endpoint& joinEp)
 	}
 
 	Room& room = it->second;
+	if(room.state==Room::RoomState::Closed) {
+		return Error(409, "room_closed", "Room has been canceled");
+	}
 
 	//join処理
 	//1.room=2人までしか参加できない
@@ -81,6 +86,9 @@ ApiResult RoomStore::JoinRoom(const std::string& roomId, const Endpoint& joinEp)
 		<< "\"port\":" << room.hostEndpoint.port
 		<< "}"
 		<< "}";
+
+	room.state = Room::RoomState::Matched;  //ルームの状態をマッチング成立にする
+
 	return { 200, oss.str() };
 }
 
@@ -96,6 +104,10 @@ ApiResult RoomStore::PollRoom(const std::string& roomId, const std::string& host
 	Room& room = it->second;
 	if (room.hostToken != hostToken) {
 		return Error(403, "invalid_host_token", "Invalid host token");
+	}
+
+	if(room.state==Room::RoomState::Closed) {
+		return Error(409, "room_closed", "Room has been canceled");
 	}
 
 	//Poll処理
@@ -114,6 +126,30 @@ ApiResult RoomStore::PollRoom(const std::string& roomId, const std::string& host
 		 << "}"
 		 << "}";
 	return { 200, oss.str() };
+}
+
+ApiResult RoomStore::CancelRoom(const std::string& roomId, const std::string& hostToken) {
+	std::lock_guard<std::mutex> lock(m_mutex);
+	CleanupExpiredRoomsLocked();
+
+	auto it = m_rooms.find(roomId);
+	if (it == m_rooms.end()) {
+		return Error(404, "room_not_found", "Room not found");
+	}
+
+	Room& room = it->second;
+	if (room.hostToken != hostToken) {
+		return Error(403, "invalid_host_token", "Invalid host token");
+	}
+
+	room.state = Room::RoomState::Closed;
+	room.closeReason = "host_cancelled";
+	room.expiresAt = std::chrono::steady_clock::now();
+
+	std::cout << NowTag() << " cancel roomId=" << room.roomId
+		<< " reason=host_cancelled\n";
+
+	return { 200, "{\"ok\":true}" };
 }
 
 std::string RoomStore::MakeRoomId() {
@@ -144,10 +180,13 @@ void RoomStore::CleanupExpiredRoomsLocked() {
 	//放置されたルームを削除し、メモリリークと古いルームへの参加を防止する
 	const auto now = std::chrono::steady_clock::now();	
 	for (auto i = m_rooms.begin(); i != m_rooms.end();) {
-		if (i->second.expiresAt <= now) {  //ルームの有効期限が切れている場合は削除する
-			std::cout << NowTag() << " Expired roomId=" << i->second.roomId << std::endl;  //ルームの有効期限切れのログを出力
-			i = m_rooms.erase(i);  //ルームを削除し、次のルームに進む
-		} else {
+		if (i->second.expiresAt <= now) {
+			const char* kind = (i->second.state == Room::RoomState::Closed) ? "closed" : "expired";
+			std::cout << NowTag() << " cleanup roomId=" << i->second.roomId
+				<< " kind=" << kind << std::endl;
+			i = m_rooms.erase(i);
+		}
+		else {
 			++i;
 		}
 	}

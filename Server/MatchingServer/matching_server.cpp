@@ -125,7 +125,16 @@ bool MatchingServer::HandleOneClient() {
 	//クライアント自己申告IPは信頼できないため、ソケットから取得したIPアドレスを使用する
 	const std::string remoteIp = SocketAddToIp(clientAddr);
 
+	std::cout << "[MatchingServer][Req] method=" << req.method
+		<< " path=" << req.path
+		<< " query=" << req.query
+		<< " from=" << remoteIp << "\n";
+
 	const HttpResponse res = RouteRequest(req, remoteIp);  // HTTPリクエストをルーティングして処理する
+
+	std::cout << "[MatchingServer][Res] status=" << res.statusCode
+		<< " path=" << req.path << "\n";
+
 	const std::string raw = BuildHttpResponse(res);  // HttpResponse構造体からHTTPレスポンスの文字列を生成する
 	::send(client, raw.data(), static_cast<int>(raw.size()), 0);  // クライアントにHTTPレスポンスを送信する
 	closesocket(client);  // クライアントとの接続を閉じる
@@ -240,7 +249,7 @@ MatchingServer::HttpResponse MatchingServer::RouteRequest(const HttpRequest& req
 		return { r.statusCode, "application/json; charset=utf-8", r.bodyJson };
 	}
 
-	if (req.method == "GET" && req.path == "/poll"){
+	if (req.method == "GET" && req.path == "/poll") {  // ルーム状態確認APIの処理
 		std::string roomId = GetQueryParam(req.query, "roomId");
 		std::string hostToken = GetQueryParam(req.query, "hostToken");
 		if (roomId.empty() || hostToken.empty()){
@@ -250,6 +259,25 @@ MatchingServer::HttpResponse MatchingServer::RouteRequest(const HttpRequest& req
 		return { r.statusCode, "application/json; charset=utf-8", r.bodyJson };
 	}
 	
+	if (req.method == "POST" && req.path == "/cancel") {  // ルームキャンセルAPIの処理
+		std::string roomId;
+		std::string hostToken;
+
+		if (!TryGetJsonStringField(req.body, "roomId", roomId) || roomId.empty()) {  // HTTPリクエストのボディからroomIdフィールドを取得
+			return { 400, "application/json; charset=utf-8",
+				"{\"error\":{\"code\":\"invalid_room_id\",\"message\":\"roomId is required\"}}" };
+		}
+		if (!TryGetJsonStringField(req.body, "hostToken", hostToken) || hostToken.empty()) {  // HTTPリクエストのボディからhostTokenフィールドを取得
+			return { 400, "application/json; charset=utf-8",
+				"{\"error\":{\"code\":\"invalid_host_token\",\"message\":\"hostToken is required\"}}" };
+		}
+
+		ApiResult r = m_store.CancelRoom(roomId, hostToken);
+		std::cout << "[MatchingServer] cancel roomId=" << roomId
+			<< " status=" << r.statusCode << "\n";
+		return { r.statusCode, "application/json; charset=utf-8", r.bodyJson };
+	}
+
 	return { 404, "application/json; charset=utf-8", "{\"error\":{\"code\":\"not_found\",\"message\":\"unknown endpoint\"}}" };
 }
 
