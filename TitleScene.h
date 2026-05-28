@@ -31,6 +31,9 @@ private:
     enum class MatchingUIState
     {
         Idle,
+		SelectingPort,
+		Matching,
+		Waiting,
         CreatingRoom,
         WaitingForJoin,
         JoiningRoom,
@@ -88,6 +91,21 @@ private:
 
 	bool TryParseServerErrorCode(const std::string& raw, std::string& outCode)const;  //APIの生エラーからエラーコードを抜き取る
 	void SaveUiToConnectionSettings();  //UIの入力をConnectionSettingsStoreに保存する
+
+	//Auto Matching用
+	std::string m_autoTicketId{};
+	int m_autoSelectedPort = 0;
+	bool m_autoMatchingInFlight = false;
+	uint64_t m_autoPollAccumMs = 0;
+	uint64_t m_autoPollIntervalMs = 1000;
+	uint64_t m_autoWaitAccumMs = 0;
+	uint64_t m_autoWaitTimeoutMs = 120000;
+
+	//Auto Matching 空きUDPポート探索
+	bool SelectFreeUdpPortInRange(int beginPort, int endPort, int& outPort, std::string& outErr);
+	void StartAutoMatching();
+	void UpdateAutoMatchingPolling(uint64_t delta);
+	void CancelAutoMatching();
 };
 
 REGISTER_CLASS(TitleScene)

@@ -37,6 +37,23 @@ struct PollRoomResult
 	MatchingEndpoint joinEndpoint;  //GUESTのUDPエンドポイント 
 };
 
+struct MatchingAutoQueueResult
+{
+	bool ok = false;  //成功したかどうか
+	std::string error;  //エラーがあればエラーメッセージ
+	std::string ticketId;  //マッチングキューのチケットID
+	std::string status;  //マッチングキューの状態 "queued" "matched" "failed"
+	MatchingEndpoint remoteEndpoint{};  //マッチング相手のUDPエンドポイント (status=="matched"のとき有効)
+};
+
+struct MatchingAutoPollResult
+{
+	bool ok = false;
+	std::string error;
+	std::string status;
+	MatchingEndpoint remoteEndpoint{};
+};
+
 class MatchingClient {
 public:
 	//createを呼び、roomIdとhostTokenを受け取る
@@ -51,6 +68,14 @@ public:
 	//cancelを呼び、host側待機をキャンセルする
 	bool CancelRoom(const std::string serverUrl, const std::string roomId, const std::string hostToken, std::string& outErr);
 
+	//Auto Matching用API　Queueを呼び、ticketIdとstatusを受け取る
+	bool QueueAutoMatching(const std::string serverUrl, int myUdpPort, MatchingAutoQueueResult& out);
+	
+	//Auto Matching用API Pollを呼び、statusとremoteEndpointを受け取る
+	bool PollAutoMatching(const std::string serverUrl, const std::string & ticketId, MatchingAutoPollResult & out);
+	
+	//Auto Matching用API Cancelを呼び、マッチングキューをキャンセルする
+	bool CancelAutoMatching(const std::string serverUrl, const std::string & ticketId, std::string & outErr);
 private:
 	//最小HTTP POST(JSON)
 	bool HttpPostJson(const std::string& url, const std::string& jsonBody, int& outStatus, std::string& outBody, std::string& outErr);

@@ -1,5 +1,8 @@
 #include "TitleScene.h"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+
 #include "Application.h"
 #include "system/CDirectInput.h"
 #include "system/scenemanager.h"
@@ -8,6 +11,10 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+#pragma comment(lib,"Ws2_32.lib")
 
 namespace {
     bool IsValidPort(int p) { return p >= 1 && p <= 65535; }
@@ -44,6 +51,7 @@ bool TitleScene::ApplyRemoteAndGoToP2PScene(const std::string& remoteIp, int rem
     
     if (!IsValidPort(myPort) || !IsValidPort(remotePort) || remoteIp.empty()) return false;
 	//ConectionSettingsStoreに反映
+    // 
 	//マッチングで取得したendpointをp2pのruntime settingに適用する
 	auto& s = ConnectionSettingsStore::Mutable();
 	s.enabled = true;
@@ -129,6 +137,9 @@ std::string TitleScene::BuildServerUrl()const {
 const char* TitleScene::MatchingStateLabel()const {
     switch(m_matchingUIState) {
     case MatchingUIState::Idle: return "Idle";
+	case MatchingUIState::SelectingPort: return "Selecting Port...";
+	case MatchingUIState::Matching: return "Matching...";
+	case MatchingUIState::Waiting: return "Waiting...";
     case MatchingUIState::CreatingRoom: return "Creating Room...";
     case MatchingUIState::WaitingForJoin: return "Waiting for Join...";
     case MatchingUIState::JoiningRoom: return "Joining Room...";
@@ -161,6 +172,9 @@ std::string TitleScene::ToUiErrorMessage(const std::string& rawError)const {
     if (code == "room_full" || code == "room_already_matched") return "room full";
     if (code == "room_expired") return "room expired";
     if (code == "room_cancelled" || code == "room_closed") return "room cancelled";
+    if (code == "ticket_expired")return "timeout";
+    if (code == "ticket_cancelled") return "room cancelled";
+    if (code == "ticket_not_found") return "room not found";
     if (code == "invalid_port") return "invalid port";
     if (code == "invalid_response" || code == "bad_request") return "invalid response";
     if (code == "timeout") return "timeout";
@@ -310,6 +324,135 @@ void TitleScene::SaveUiToConnectionSettings() {
     s.hostToken = m_hostToken;
 }
 
+bool TitleScene::SelectFreeUdpPortInRange(int beginPort, int endPort, int& outPort, std::string& outErr) {
+	//50000-50100の範囲で空いてるUDPポートを探す
+    WSADATA wsa{};
+    if(WSAStartup(MAKEWORD(2,2), &wsa)!=0) {
+        outErr = "WSAStartup failed";
+        return false;
+	}
+
+    for (int p = beginPort; p <= endPort; ++p) {
+        SOCKET s = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if (s == INVALID_SOCKET) continue;
+        
+        sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.sin_port = htons(static_cast<u_short>(p));
+        
+        const int rc = ::bind(s, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+        closesocket(s);
+        if (rc == 0) {
+            outPort = p;
+            WSACleanup();
+            return true;
+        }
+    }
+
+	WSACleanup();
+    outErr = "no free port";
+	return false;
+}
+
+void TitleScene::StartAutoMatching() {
+	//Auto Matching処理
+    if (m_serverIpInput[0] == '\0' || !IsValidPort(m_serverPortInput)) {
+        SetError("invalid server address");
+        return;
+    }
+
+	SetState(MatchingUIState::SelectingPort, "selecting free UDP port...");
+    std::string selErr;
+    int selected = 0;
+    if(!SelectFreeUdpPortInRange(50000, 50100, selected, selErr)) {
+        SetError(selErr);
+        return;
+	}
+
+	m_autoSelectedPort = selected;
+    std::cout << "[TitleScene][Auto] selected UDP port=" << m_autoSelectedPort << "\n";
+
+    SetState(MatchingUIState::Matching, "enqueue matching queue...");
+    MatchingAutoQueueResult qr{};
+    if (!m_matchingClient.QueueAutoMatching(BuildServerUrl(), m_autoSelectedPort, qr)) {
+		SetError(qr.error);
+        return;
+    }
+    
+    m_autoTicketId = qr, tickedId;
+	m_autoPollAccumMs = 0;
+    m_autoWaitAccumMs = 0;
+
+    if (qr.status == "matched") {
+        SetState(MatchingUIState::Matched, "matched. starting P2P...");
+        ApplyRemoteAndGoToP2PScene(
+            qr.remoteEndpoint.ip,
+            qr.remoteEndpoint.port,
+            m_autoSelectedPort,
+			"AutoMatching");
+        return;
+    }
+
+	SetState(MatchingUIState::Waiting, "waiting for auto matching...");
+}
+
+void TitleScene::UpdateAutoMatchingPolling(uint64_t delta) {
+    if (m_matchingUIState != MatchingUIState::Waiting)return;
+
+    const uint64_t deltaMs = delta / 1000;
+	m_autoPollAccumMs += deltaMs;
+	m_autoWaitAccumMs += deltaMs;
+
+    if (m_autoWaitAccumMs >= m_autoWaitTimeoutMs) {
+		SetState(MatchingUIState::Timeout, "auto matching timeout");
+		m_errorMessage = "timeout";
+        return;
+    }
+
+	if (m_autoPollAccumMs < m_pollIntervalMs) return;
+	m_autoPollAccumMs = 0;
+
+    MatchingAutoPollResult pr{};
+    if (!m_matchingClient.PollAutoMatching(BuildServerUrl(), m_autoTicketId, pr)) {
+		SetError(pr.error);
+        return;
+    }
+
+    if (pr.status == "waiting")return;
+    if (pr.status == "cancelled") {
+		SetState(MatchingUIState::Cancelled, "queue cancelled");
+        return;
+    }
+    if (pr.status == "expired") {
+		SetState(MatchingUIState::Timeout, "queue expired");
+		m_errorMessage = "timeout";
+		return;
+    }
+    if (pr.status == "matched") {
+        SetState(MatchingUIState::Matched, "matched! starting P2P...");
+        ApplyRemoteAndGoToP2PScene(
+            pr.remoteEndpoint.ip,
+            pr.remoteEndpoint.port,
+            m_autoSelectedPort,
+            "AutoPoll");
+        return;
+    }
+
+    SetError("invalid response");
+}
+
+void TitleScene::CancelAutoMatching(){
+    if (m_autoTicketId.empty()) return;
+    std::string err;
+    if (!m_matchingClient.CancelAutoMatching(BuildServerUrl(), m_autoTicketId, err)) {
+        SetError(err);
+        return;
+    }
+    m_autoTicketId.clear();
+    SetState(MatchingUIState::Cancelled, "auto matching cancelled");
+}
+
 void TitleScene::update(uint64_t delta)
 {
     const float screenWidth = static_cast<float>(Application::GetWidth());
@@ -323,6 +466,7 @@ void TitleScene::update(uint64_t delta)
     
 	//Host待機中は定期的にマッチングサーバーにpollする
 	UpdateHostPolling(delta);
+	UpdateAutoMatchingPolling(delta);
 
 	//enterは既存の設定でP2Pシーンへ
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN)) {
@@ -476,6 +620,23 @@ void TitleScene::DrawMatchingUi(){
             }
         }
     }
+
+    // Auto Matching:
+    // ユーザー入力なしでマッチングを開始する主導線。RoomID/UDP Port入力不要。
+    if (ImGui::CollapsingHeader("Auto Matching", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::Button("Start Matching")) {
+            StartAutoMatching();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel Auto")) {
+            CancelAutoMatching();
+        }
+ 
+        ImGui::Text("Auto Ticket: %s", m_autoTicketId.empty() ? "(none)" : m_autoTicketId.c_str());
+        ImGui::Text("Auto UDP Port: %d", m_autoSelectedPort);
+        ImGui::Text("NOTE: NAT traversal (STUN/TURN/Hole Punching) is not implemented yet.");
+    }
+
     DrawConnectionStatusUi();
     ImGui::End();
 }

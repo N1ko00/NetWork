@@ -1,8 +1,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <Windows.h>
+
 #include <WinSock2.h>
 #include <ws2tcpip.h>
+#include <Windows.h>
 #include <cstring>
 #include <sstream>
 #include <iostream>
@@ -442,6 +443,80 @@ bool MatchingClient::CancelRoom(const std::string serverUrl, const std::string r
 
 	if (status != 200) {
 		const std::string code = ExtractErrorCode(body);
+		outErr = code.empty() ? body : code;
+		return false;
+	}
+	return true;
+}
+
+bool MatchingClient::QueueAutoMatching(const std::string serverUrl, int myUdpPort, MatchingAutoQueueResult& out){
+	int status = 0;
+	std::string body, err;
+	const std::string url = serverUrl + "/queue";
+	const std::string req = std::string{ "{\"my_udp_Port\":" } + std::to_string(myUdpPort) + "}";
+	
+	std::cout<< "[MatchingClient][Queue][Req] " << url
+		<< " myUdpPort=" << myUdpPort << "\n";
+	if(!HttpPostJson(url, req, status, body, err)) {
+		out.error = err;
+		return false;
+	}
+	if (status != 200) { 
+		out.error = ExtractErrorCode(body); 
+		if (out.error.empty()) {
+			out.error = body;
+			return false;
+		}
+	}
+
+	if (!JsonGetString(body, "ticket_id", out.ticketId) || !JsonGetString(body, "status", out.status)) {
+		out.error = "invalid response";
+		return false;
+	}
+
+	if (out.status == "matched") {
+		if (!JsonGetString(body, "ip", out.remoteEndpoint.ip) || !JsonGetInt(body, "port", out.remoteEndpoint.port)) {
+			out.error = "invalid response";
+			return false;
+		}
+	}
+	out.ok = true;
+	std::cout << "[MatchingClient][Queue][Res] ticket=" << out.ticketId << "status=" << out.status << "\n";
+	return true;
+}
+
+bool MatchingClient::PollAutoMatching(const std::string serverUrl, const std::string& ticketId, MatchingAutoPollResult& out){
+	int status = 0;
+	std::string body, err;
+	const std::string url = serverUrl + "/queue/poll?ticket_id=" + UrlEncodeSimple(ticketId);
+	
+	if (!HttpGet(url, status, body, err)) { out.error = err; return false; }
+	if (status != 200) { out.error = ExtractErrorCode(body); if (out.error.empty()) out.error = body; return false; }
+	
+	if (!JsonGetString(body, "status", out.status)) {
+		out.error = "invalid response";
+		return false;
+	}
+	
+	if (out.status == "matched") {
+		if (!JsonGetString(body, "ip", out.remoteEndpoint.ip) || !JsonGetInt(body, "port", out.remoteEndpoint.port)) {
+			out.error = "invalid response";
+			return false;	
+		}
+	}
+	out.ok = true;
+	return true;
+}
+
+bool MatchingClient::CancelAutoMatching(const std::string serverUrl, const std::string& ticketId, std::string& outErr){
+	int status = 0;
+	std::string body;
+	const std::string url = serverUrl + "/queue/cancel";
+	const std::string req = std::string("{\"ticket_id\":\"") + ticketId + "\"}";
+	
+	if (!HttpPostJson(url, req, status, body, outErr)) return false;
+	if (status != 200) {
+		std::string code = ExtractErrorCode(body);
 		outErr = code.empty() ? body : code;
 		return false;
 	}
